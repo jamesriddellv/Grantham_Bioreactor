@@ -1,0 +1,62 @@
+# log for 01-build-vOTU-database
+
+2023-11-08
+
+All samples finished successfully for vs2-pass1 except the MAG scaffolds. This was to be 
+expected since it was 4x larger than the assemblies.
+
+I re-ran the MAG scaffolds with 24 hrs instead of 12, and since it had already finished
+step 1 I think it will finish by tomorrow. 
+
+In the meantime, I'm going to run CheckV and vs2-pass2 on the next set. 
+
+If those finish early, I'll run DRAMv as well.
+
+2023-11-07
+
+Ran all samples on vs2-pass1 since the first test was successful for arrayid=1.
+
+I also ran CheckV on arrayid=1 and it was successful, so I started vs2-pass2
+for arrayid=1 to make sure all the code is working.
+
+So far we are covering both the MAG scaffolds and the assemblies.
+
+The MAG scaffolds are large (8Gb) vs the assemblies (2Gb each) so there is a 
+possibility the MAG scaffolds will time out, and if so I'll correct for that.
+
+2023-11-06
+
+Created symbolic links (soft links) between Adjie's stordalen vOTU database and the data directory.
+
+Wrote out protocol for this directory.
+
+Figured out which files Bridget sent go with which tar directory and updated the main README.
+
+commands:
+
+cp scaffolds_1kb_renamed.tar.gz /fs/scratch/Sullivan_Lab/
+mkdir JamesR
+mv scaffolds_1kb_renamed.tar.gz JamesR/
+cd JamesR
+tar -xvf scaffolds_1kb_renamed.tar.gz 
+
+scaffolds_1kb_renamed/
+scaffolds_1kb_renamed/STM_0716_E_M_E030_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E026_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E034_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E050_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E054_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E058_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E034_E058_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E026_E050_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E026_E050_E061_D.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E034_E058_E069_D.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E030_E054_E065_D.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E026_E050_E061_E.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E026_E030_E034_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E050_E054_E058_A.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E050_E054_E058_D.contigs_1kb.fa
+scaffolds_1kb_renamed/STM_0716_E_M_E026_E030_E034_D.contigs_1kb.fa
+
+Moved the MAG scaffolds (8Gb) into the new assemblies folder so that they can all be processed together
+

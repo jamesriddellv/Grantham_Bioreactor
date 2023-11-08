@@ -38,18 +38,27 @@ Grantham_Bioreactor
 
 - 01-build-vOTU-database
     - data
-        - Stordalen-vOTUs.fna
-        - processed-metaG-assemblies
-        - new-metaG-assemblies
+        - Stordalen-vOTUs.fna: stordalen_vOTUs_symlink.fasta
+        - processed-metaG-assemblies: 20230407_Grantham_incubations_viral_contigs.fa
+        - new-metaG-assemblies: October2023_Grantham/scaffolds_1kb_renamed.tar.gz
             - 16 assemblies
-        - MAG-database
+        - MAG-database: October2023_Grantham/DRAM_v1.4.4_wCAMPER_2304.tar.gz/scaffolds.fna
+	- viral_id_outputs
+            - new-metaG-viral-contigs
+                - virsorter2
+                - checkV
+                - DRAMv
+            - MAG-database-viral-contigs
+                - virsorter2
+                - checkV
+                - DRAMv
     - results
         - bioreactor-vOTU-database.fna
 - results
 - 02-get-relative-abundance
     - data
-        - MetaT-reads
-            - 1.2Tb metaT data
+        - MetaT
+            - 1.2Tb (202Gb compressed) metaT read data for each timepoint in the bioreactor
     - results
         - bam-files
         - CoverM
