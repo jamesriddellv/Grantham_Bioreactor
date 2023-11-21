@@ -1,1 +1,59 @@
 # runall script for 01-build-vOTU-database
+
+# prerequisite: make sure all scripts are present from https://github.com/jamesriddellv/Grantham_Bioreactor/tree/main/01-build-vOTU-database/scripts
+
+# create directories
+
+mkdir data
+mkdir results
+
+# build out data directory (symlinks and globus download)
+cd data
+
+# create soft link to existing viral contigs from 2023-04 assemblies
+
+ln -s /fs/ess/PAS1117/Grantham/20230407_Grantham_incubations/data_processing/VS2-SOP-screen/final-viral-scored-all-cleaned.fa 20230407_Grantham_incubations_viral_contigs.fa
+
+# create a soft link to stordalen vOTU database
+ln -s /fs/ess/PAS1117/apratama/isogenie/Isogenie_final_viral_contigs/FINAL_5051_votus.fasta stordalen_vOTUs_symlink.fasta
+
+# unzip large data in new scratch directory for this project
+
+cp scaffolds_1kb_renamed.tar.gz /fs/scratch/Sullivan_Lab/
+mkdir -p JamesR
+mv scaffolds_1kb_renamed.tar.gz JamesR/
+cd JamesR
+tar -xvf scaffolds_1kb_renamed.tar.gz
+
+mkdir -p Grantham_Bioreactor
+
+mv scaffolds_1kb_renamed Grantham_Bioreactor
+
+# create assemblies.conf file
+
+ls -1 data | sed 's/.fa//' > assemblies.conf
+
+
+# run scripts
+
+sbatch run_vs2_pass1_slurm.sh
+wait
+
+sbatch run_checkv_slurm.sh
+wait
+
+sbatch run_vs2_pass2_slurm.sh
+wait
+
+sbatch run_dramv_slurm.sh
+wait
+
+sbatch vs2_sop_screen.sh
+
+
+
+# create slurm output directory and move slurm outputs there
+
+
+
+

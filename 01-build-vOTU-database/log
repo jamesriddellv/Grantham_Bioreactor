@@ -1,5 +1,38 @@
 # log for 01-build-vOTU-database
 
+2023-11-16
+
+Got the headers of each to compare which sets are in each vOTU cluster to see if we found new contigs with this analysis.
+
+(base) [riddell26@owens-login04 data]$ grep ">" 20230407_Grantham_incubations_viral_contigs.fa > 20230407_contig_headers.txt
+(base) [riddell26@owens-login04 data]$ grep ">" 2023-10-31-assemblies-final-viral-scored.fa > 20231031_contig_headers.txt
+(base) [riddell26@owens-login04 data]$ grep ">" stordalen_vOTUs_symlink.fa > stordalen_vOTU_headers.txt
+
+2023-11-14
+
+Last night I was able to re-do the vs2-sop-screen step to extract the right
+list of vOTUs from the old assemblies.
+
+After that, I clustered with the checkV clustering program ANICLUST
+at MIUViG cutoffs of 95% ani and 85% tcov. This resulted in 17343 vOTU clusters.
+
+2023-11-13
+
+Finished processing the viral contigs. I split the scaffolds.fa file into 10 pieces, all less
+than 1Gb and it worked well.
+
+I was having an issue where the vs2-sop-screen script was not giving me any fasta file.
+
+I figured out it was because we are now pulling from the checkV combined.fna file instead of
+the DRAMv fasta file, which was what the original was doing (and was wrong because it was vs2-SOP modded).
+
+I can now cluster my sequences!
+
+2023-11-10
+
+Had to split the MAGS, scaffolds.fa, into multiple fasta files. It was too big and timing out
+Ran on owens since someone is hogging most of the pitzer nodes.
+
 2023-11-08
 
 All samples finished successfully for vs2-pass1 except the MAG scaffolds. This was to be 

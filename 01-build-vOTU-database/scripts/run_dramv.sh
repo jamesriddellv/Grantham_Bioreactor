@@ -11,7 +11,7 @@ fasta_input="./viral_id_outputs/vs2-pass2/${assembly}/for-dramv/final-viral-comb
 affi_input="./viral_id_outputs/vs2-pass2/${assembly}/for-dramv/viral-affi-contigs-for-dramv.tab"
 
 # Variables to pass to DRAMv annotate
-opts="--skip_trnascan --threads 20 --min_contig_size 1000"
+opts="--skip_trnascan --threads 28 --min_contig_size 1000"
 outDir="./viral_id_outputs/DRAMv/${assembly}/DRAMv-annotate"
 
 mkdir -p ./viral_id_outputs/DRAMv/${assembly}

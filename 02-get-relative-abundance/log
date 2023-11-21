@@ -1,1 +1,40 @@
 # log for 02-get-relative-abundance
+
+2023-11-15
+
+Finished bowtie2 alignments of metaT samples.
+
+Alignment was low, which is to be expected from cell-enriched metaGs. 
+
+We had alignments range from 0.73% to 11%.
+
+I will now extract coverage data.
+
+Coverage data extracted successfully! 
+
+Now to get the relative abundance we need to do 3 things:
+
+1) merge all coverage data with merge_coverage_files.py that I wrote and completed
+2) extract the reads mapped and total reads in each sample, which I did with extract_coverm_stats.sh
+TODO: 3) need to get the length of each vOTU, which I can do with seqkit to get the length.
+TODO: 4) put it all together to get relative abundance by normalizing for read length and sequencing depth, 
+	 then multiply by a scale factor.
+
+2023-11-14
+
+Generated the bowtie2 index. Our total vOTUs is actually pretty small so it worked quickly.
+
+Now i am going to do the mapping, which will take longer. My plan is to extract one at a time, map, and then delete it off of scratch.
+
+for the metaT.conf file, I'm going to remove the extension: _JGI_MT_R${r}_bbdtrimmed_100M.fastq to allow the folders to have nice names
+and match with the metadata table.
+
+also removed trimmed_100M from the conf file
+
+Then I sorted and removed duplicates
+
+An issue I'm having is the tar file not extracting fully or stalling or not finishing?
+The tar extract goes up to 17G and then just stops, but doesn't end the program.
+Need to figure out what is going on.
+
+Ended up just extracting all the fastqs to scratch (1.2Tb). I will just use this unzipped.

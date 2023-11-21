@@ -1,0 +1,35 @@
+WARNING: Environment variable LD_PRELOAD already has value [], will not forward new value [/usr/local/xalt/xalt/lib64/libxalt_init.so] from parent process environment
+Create self BLAST database
+
+
+Building a new DB, current time: 11/14/2023 00:52:12
+New DB name:   /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/vOTU_clusters/all_seqs.fna.db
+New DB title:  /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/viral_id_outputs/all_seqs.fna
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 49380 sequences in 3.73042 seconds.
+
+
+Running all-verses-all pairwise BLAST
+Calculating pairwise ANI
+Running clustering on ../data/vOTU_clusters/all_seqs.fna.self-blastn.ani.tsv using aniclust.py
+
+reading sequences...
+49380 sequences retained from fna
+time: 1.71 seconds, peak RAM: 0.04 GB
+
+storing edges...
+286966 edges retained from blastani
+286966 edges currently stored
+time: 93.27 seconds, peak RAM: 0.06 GB
+
+clustering...
+17343 total clusters
+time: 93.31 seconds, peak RAM: 0.07 GB
+
+writing clusters...
+time: 93.41 seconds, peak RAM: 0.07 GB
+Parsing clusters: Building list of representatives
+Parsing clusters: Writing 17343 records to f../data/vOTU_clusters/all_seqs.fna.self-blastn.clusters.fna
+Dereplicated 49380 sequences into 17343 cluster representatives
