@@ -1,0 +1,76 @@
+slurm-bowtie2_30503729_10.out
+1.60% overall alignment rate
+slurm-bowtie2_30503729_11.out
+2.75% overall alignment rate
+slurm-bowtie2_30503729_12.out
+1.24% overall alignment rate
+slurm-bowtie2_30503729_13.out
+0.40% overall alignment rate
+slurm-bowtie2_30503729_14.out
+0.44% overall alignment rate
+slurm-bowtie2_30503729_15.out
+0.19% overall alignment rate
+slurm-bowtie2_30503729_16.out
+0.46% overall alignment rate
+slurm-bowtie2_30503729_17.out
+0.24% overall alignment rate
+slurm-bowtie2_30503729_18.out
+1.04% overall alignment rate
+slurm-bowtie2_30503729_19.out
+1.64% overall alignment rate
+slurm-bowtie2_30503729_1.out
+0.10% overall alignment rate
+slurm-bowtie2_30503729_20.out
+1.33% overall alignment rate
+slurm-bowtie2_30503729_21.out
+1.00% overall alignment rate
+slurm-bowtie2_30503729_22.out
+0.43% overall alignment rate
+slurm-bowtie2_30503729_23.out
+0.62% overall alignment rate
+slurm-bowtie2_30503729_24.out
+0.31% overall alignment rate
+slurm-bowtie2_30503729_25.out
+0.65% overall alignment rate
+slurm-bowtie2_30503729_26.out
+0.43% overall alignment rate
+slurm-bowtie2_30503729_27.out
+2.05% overall alignment rate
+slurm-bowtie2_30503729_28.out
+1.68% overall alignment rate
+slurm-bowtie2_30503729_29.out
+0.91% overall alignment rate
+slurm-bowtie2_30503729_2.out
+0.39% overall alignment rate
+slurm-bowtie2_30503729_30.out
+1.34% overall alignment rate
+slurm-bowtie2_30503729_31.out
+0.36% overall alignment rate
+slurm-bowtie2_30503729_32.out
+1.73% overall alignment rate
+slurm-bowtie2_30503729_33.out
+0.20% overall alignment rate
+slurm-bowtie2_30503729_34.out
+0.12% overall alignment rate
+slurm-bowtie2_30503729_35.out
+0.24% overall alignment rate
+slurm-bowtie2_30503729_36.out
+1.83% overall alignment rate
+slurm-bowtie2_30503729_37.out
+0.65% overall alignment rate
+slurm-bowtie2_30503729_38.out
+0.97% overall alignment rate
+slurm-bowtie2_30503729_3.out
+0.11% overall alignment rate
+slurm-bowtie2_30503729_4.out
+1.67% overall alignment rate
+slurm-bowtie2_30503729_5.out
+0.88% overall alignment rate
+slurm-bowtie2_30503729_6.out
+0.28% overall alignment rate
+slurm-bowtie2_30503729_7.out
+0.39% overall alignment rate
+slurm-bowtie2_30503729_8.out
+0.44% overall alignment rate
+slurm-bowtie2_30503729_9.out
+1.77% overall alignment rate

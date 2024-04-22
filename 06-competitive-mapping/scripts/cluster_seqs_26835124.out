@@ -1,0 +1,15 @@
+WARNING: Environment variable LD_PRELOAD already has value [], will not forward new value [/apps/xalt/xalt/lib64/libxalt_init.so] from parent process environment
+Create self BLAST database
+
+
+Building a new DB, current time: 02/26/2024 14:22:31
+New DB name:   /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/06-competitive-mapping/01-combined-database/clustered_combined_scaffolds.fna/combined_scaffolds.fna.db
+New DB title:  ../01-combined-database/combined_scaffolds.fna
+Sequence type: Nucleotide
+Keep MBits: T
+Maximum file size: 1000000000B
+Adding sequences from FASTA; added 732127 sequences in 55.0318 seconds.
+
+
+Running all-verses-all pairwise BLAST
+slurmstepd: error: *** JOB 26835124 ON p0142 CANCELLED AT 2024-02-26T18:22:29 DUE TO TIME LIMIT ***

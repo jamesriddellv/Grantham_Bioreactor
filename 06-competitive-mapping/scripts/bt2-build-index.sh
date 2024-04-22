@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --time=1:00:00
+#SBATCH --time=06:00:00
 #SBATCH --nodes=1
 #SBATCH -n 28
 #SBATCH --account=PAS1117
@@ -13,5 +13,5 @@ module use /fs/project/PAS1117/modulefiles
 module load bowtie2/2.4.1
 
 bowtie2-build \
-../../01-build-vOTU-database/results/vOTU_clusters/checkv_10kb_or_high_quality_vOTUs.fna \
-../data/bt2-index/checkv_10kb_or_high_quality_vOTUs
+../01-combined-database/all_seqs.fna.self-blastn.clusters.fna \
+vOTUs

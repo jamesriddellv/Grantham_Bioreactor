@@ -1,1 +1,1 @@
-ls slurm_outputs/*coverm* -1 | while read line; do tail -n 1 $line; done | awk -F" " 'BEGIN {OFS=","; print "Sample,,Reads Mapped,Total Mapped"} {print $6, $8, $13}' | sed s/,// > ../results/coverm-files/coverm_stats.txt
+ls slurm_outputs/*25933716* -1 | while read line; do tail -n 1 $line; done | awk -F" " 'BEGIN {OFS=","; print "Sample,,Reads Mapped,Total Mapped"} {print $6, $8, $13}' | sed s/,// > ../results/coverm-files/coverm_stats.txt

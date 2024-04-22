@@ -19,6 +19,5 @@ contig \
 --bam-files ${WORKING_DIR}/results/bam-files/${sample}/${sample}.bam \
 --output-format dense \
 --min-read-percent-identity .95 \
---min-covered-fraction .75
--m mean \
--t 28 > ${WORKING_DIR}/results/coverm-files/${sample}_meancov.txt
+-m count \
+-t 28 > ${WORKING_DIR}/results/coverm-files/${sample}_readcount.txt

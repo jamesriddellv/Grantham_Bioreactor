@@ -14,5 +14,5 @@ for filename in os.listdir(data_dir):
     else:
         merged_df = merged_df.merge(df, on='Contig', how='outer')
 
-merged_df.to_csv(data_dir + '/ALL-SAMPLES-coverm_meancov.txt', index=False)
-print('merged coverage files to ' + data_dir + '/ALL-SAMPLES-coverm_meancov.txt')
+merged_df.to_csv(data_dir + '/ALL-SAMPLES-coverm_readcounts.txt', index=False)
+print('merged coverage files to ' + data_dir + '/ALL-SAMPLES-coverm_readcounts.txt')
