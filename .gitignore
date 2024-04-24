@@ -1,5 +1,3 @@
-**/data
-**/slurm
-**/slurm-*
-**/slurm_outputs
-**/results
+data/
+slurm_outputs/
+results/
