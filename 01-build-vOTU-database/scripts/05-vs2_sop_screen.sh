@@ -8,7 +8,7 @@
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --export=ALL
 #SBATCH --output=%x_%A_%a.out
-#SBATCH --array=0-25
+#SBATCH --array=0-38
 
 arrayid=$((${SLURM_ARRAY_TASK_ID} + 1))
 

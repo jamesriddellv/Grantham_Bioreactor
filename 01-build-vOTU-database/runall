@@ -49,11 +49,14 @@ sbatch run_dramv_slurm.sh
 wait
 
 sbatch vs2_sop_screen.sh
+wait
 
+sbatch cluster_viral_contigs.sh
+wait
 
 
 # create slurm output directory and move slurm outputs there
 
+mkdir -p slurm_outputs
 
-
-
+mv slurm-* slurm_outputs
