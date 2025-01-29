@@ -1,5 +1,5 @@
 arrayid=$(($1 + 1))
-assembly=$(sed "${arrayid}q;d" ../assemblies.conf)
+assembly=$(sed "${arrayid}q;d" ../April2023_assemblies.conf)
 
 cd /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor
 

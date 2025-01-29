@@ -1,0 +1,2 @@
+WARNING: Environment variable LD_PRELOAD already has value [], will not forward new value [/apps/xalt/xalt/lib64/libxalt_init.so] from parent process environment
+slurmstepd: error: *** JOB 30364786 ON p0201 CANCELLED AT 2024-07-24T10:54:45 ***

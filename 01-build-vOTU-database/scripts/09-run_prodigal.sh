@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --time=08:00:00
+#SBATCH --time=04:00:00
 #SBATCH --nodes=1
-#SBATCH -n 28
+#SBATCH --mem=117gb
 #SBATCH --account=PAS1117
 #SBATCH --job-name=prodigal
 #SBATCH --mail-user=riddell.26@buckeyemail.osu.edu
@@ -11,8 +11,9 @@
 module use /fs/project/PAS1117/modulefiles
 module load prodigal/2.6.3
 prodigal \
--i ../results/vOTU_clusters/checkv_5kb_or_high_quality_vOTUs.fna \
+-i ../results/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs/vs2_sop_genomad_stordalen_emerson2018_combined.fa.self-blastn.clusters.fna \
 -f gff \
--o ../results/vOTU_clusters/checkv_5kb_or_high_quality_vOTUs.gff \
--a ../results/vOTU_clusters/checkv_5kb_or_high_quality_vOTUs.faa \
+-o ../results/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs/final-viral-combined.gff \
+-a ../results/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs/final-viral-combined.faa \
+-d ../results/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs/final-viral-combined-genes.fna \
 -p meta

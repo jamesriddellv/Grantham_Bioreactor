@@ -1,0 +1,1 @@
+cat April2023/ALL-SAMPLES-20230406-STM_0716_E_M_megahit_final.contigs_1000_summary/ALL-SAMPLES-20230406-STM_0716_E_M_megahit_final.contigs_1000_virus_summary.tsv MAGs/ALL-MAG-scaffolds_summary/ALL-MAG-scaffolds_virus_summary.tsv October2023/*_summary/*_virus_summary.tsv > April2023_October2023_ALL-MAG_viruses_combined_virus_summary.tsv

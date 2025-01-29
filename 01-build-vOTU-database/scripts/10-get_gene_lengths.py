@@ -44,8 +44,8 @@ def extract_cds_lengths(gff_file, output_file):
     print(f"CDS lengths extracted to: {output_file}")
 
 # Specify the GFF file path and the output file path
-gff_file = '../results/vOTU_clusters/checkv_5kb_or_high_quality_vOTUs.gff'  # Replace with the path to your GFF file
-output_file = '../results/vOTU_clusters/5kb_or_high_quality_vOTU_gene_lengths.tsv'  # Specify the desired output file path (tab-separated file)
+gff_file = '../results/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs/final-viral-combined.gff'  # Replace with the path to your GFF file
+output_file = '../results/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs/vs2_sop_genomad_stordalen_emerson2018_combined_vOTUs_gene_lengths.tsv'  # Specify the desired output file path (tab-separated file)
 
 # Run the function to extract CDS lengths
 extract_cds_lengths(gff_file, output_file)
