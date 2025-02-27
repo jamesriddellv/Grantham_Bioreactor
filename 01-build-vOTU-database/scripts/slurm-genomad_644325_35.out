@@ -1,0 +1,233 @@
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad annotate (v1.8.0). This will perform gene calling in the  │
+│  input sequences and annotate the predicted proteins with geNomad's          │
+│  markers.                                                                    │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_annotate                                    │
+│    ├── proviruses_annotate.json (execution parameters)                       │
+│    ├── proviruses_genes.tsv (gene annotation data)                           │
+│    ├── proviruses_taxonomy.tsv (taxonomic assignment)                        │
+│    ├── proviruses_mmseqs2.tsv (MMseqs2 output file)                          │
+│    └── proviruses_proteins.faa (protein FASTA file)                          │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:12:27] Executing genomad annotate.                                          
+[05:12:27] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_annotate directory.              
+[05:12:28] Proteins predicted with pyrodigal-gv were written to                 
+           proviruses_proteins.faa.                                             
+[05:13:16] Proteins annotated with MMseqs2 and geNomad database (v1.7) were     
+           written to proviruses_mmseqs2.tsv.                                   
+[05:13:16] Deleting proviruses_mmseqs2.                                         
+[05:13:17] Gene data was written to proviruses_genes.tsv.                       
+[05:13:17] Taxonomic assignment data was written to proviruses_taxonomy.tsv.    
+[05:13:17] geNomad annotate finished!                                           
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad find-proviruses (v1.8.0). This will find putative         │
+│  proviral regions within the input sequences.                                │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_find_proviruses                             │
+│    ├── proviruses_find_proviruses.json (execution parameters)                │
+│    ├── proviruses_provirus.tsv (provirus data)                               │
+│    ├── proviruses_provirus.fna (provirus nucleotide sequences)               │
+│    ├── proviruses_provirus_proteins.faa (provirus protein sequences)         │
+│    ├── proviruses_provirus_genes.tsv (provirus gene annotation data)         │
+│    ├── proviruses_provirus_taxonomy.tsv (provirus taxonomic assignment)      │
+│    ├── proviruses_provirus_mmseqs2.tsv (MMseqs2 output file)                 │
+│    └── proviruses_provirus_aragorn.tsv (Aragorn output file)                 │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:13:17] Executing genomad find-proviruses.                                   
+[05:13:17] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_find_proviruses directory.       
+[05:13:17] No potential provirus-carrying sequences were identified.            
+[05:13:17] geNomad find-proviruses finished!                                    
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad marker-classification (v1.8.0). This will classify the    │
+│  input sequences into chromosome, plasmid, or virus based on the presence    │
+│  of geNomad markers and other gene-related features.                         │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_marker_classification                       │
+│    ├── proviruses_marker_classification.json (execution parameters)          │
+│    ├── proviruses_features.tsv (sequence feature data: tabular format)       │
+│    ├── proviruses_features.npz (sequence feature data: binary format)        │
+│    ├── proviruses_marker_classification.tsv (sequence classification:        │
+│    │   tabular format)                                                       │
+│    └── proviruses_marker_classification.npz (sequence classification:        │
+│        binary format)                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:13:18] Executing genomad marker-classification.                             
+[05:13:18] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_marker_classification directory. 
+[05:13:18] Sequence features computed.                                          
+[05:13:18] Sequence features in binary format written to                        
+           proviruses_features.npz.                                             
+[05:13:18] Sequence features in tabular format written to                       
+           proviruses_features.tsv.                                             
+[05:13:18] Sequences classified.                                                
+[05:13:18] Sequence classification in binary format written to                  
+           proviruses_marker_classification.npz.                                
+[05:13:18] Sequence classification in tabular format written to                 
+           proviruses_marker_classification.tsv.                                
+[05:13:18] geNomad marker-classification finished!                              
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad nn-classification (v1.8.0). This will classify the input  │
+│  sequences into chromosome, plasmid, or virus based on the nucleotide        │
+│  sequence.                                                                   │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_nn_classification                           │
+│    ├── proviruses_nn_classification.json (execution parameters)              │
+│    ├── proviruses_encoded_sequences (directory containing encoded sequence   │
+│    │   data)                                                                 │
+│    ├── proviruses_nn_classification.tsv (contig classification: tabular      │
+│    │   format)                                                               │
+│    └── proviruses_nn_classification.npz (contig classification: binary       │
+│        format)                                                               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:13:21] Executing genomad nn-classification.                                 
+[05:13:21] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_nn_classification directory.     
+[05:13:21] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_nn_classification/proviruses_enco
+           ded_sequences directory.                                             
+[05:13:21] Encoded sequence data written to proviruses_encoded_sequences.       
+
+[05:13:24] Sequences classified.                                                
+[05:13:24] Sequence classification in binary format written to                  
+           proviruses_nn_classification.npz.                                    
+[05:13:24] Deleting encoded sequence data.                                      
+[05:13:24] Sequence classification in tabular format written to                 
+           proviruses_nn_classification.tsv.                                    
+[05:13:24] geNomad nn-classification finished!                                  
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad aggregated-classification (v1.8.0). This will aggregate   │
+│  the results of the marker-classification and nn-classification modules to   │
+│  classify the input sequences into chromosome, plasmid, or virus.            │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_aggregated_classification                   │
+│    ├── proviruses_aggregated_classification.json (execution parameters)      │
+│    ├── proviruses_aggregated_classification.tsv (sequence classification:    │
+│    │   tabular format)                                                       │
+│    └── proviruses_aggregated_classification.npz (sequence classification:    │
+│        binary format)                                                        │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:13:24] Executing genomad aggregated-classification.                         
+[05:13:24] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_aggregated_classification        
+           directory.                                                           
+[05:13:24] The total marker frequencies of the input sequences were computed.   
+[05:13:24] Sequences classified.                                                
+[05:13:24] Sequence classification in binary format written to                  
+           proviruses_aggregated_classification.npz.                            
+[05:13:24] Sequence classification in tabular format written to                 
+           proviruses_aggregated_classification.tsv.                            
+[05:13:24] geNomad aggregated-classification finished!                          
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad score-calibration (v1.8.0). This will calibrate the       │
+│  classification scores based on the sample composition.                      │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_score_calibration                           │
+│    ├── proviruses_score_calibration.json (execution parameters)              │
+│    ├── proviruses_compositions.tsv (estimated compositions: tabular format)  │
+│    ├── proviruses_compositions.npz (estimated compositions: binary format)   │
+│    ├── proviruses_calibrated_marker_classification.tsv (calibrated sequence  │
+│    │   marker-classification data: tabular format)                           │
+│    ├── proviruses_calibrated_marker_classification.npz (calibrated sequence  │
+│    │   marker-classification data: binary format)                            │
+│    ├── proviruses_calibrated_nn_classification.tsv (calibrated sequence      │
+│    │   nn-classification data: tabular format)                               │
+│    ├── proviruses_calibrated_nn_classification.npz (calibrated sequence      │
+│    │   nn-classification data: binary format)                                │
+│    ├── proviruses_calibrated_aggregated_classification.tsv (calibrated       │
+│    │   sequence aggregated-classification data: tabular format)              │
+│    └── proviruses_calibrated_aggregated_classification.npz (calibrated       │
+│        sequence aggregated-classification data: binary format)               │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:13:24] Executing genomad score-calibration.                                 
+[05:13:24] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_score_calibration directory.     
+[05:13:24] The uncalibrated classification scores were loaded.                  
+[05:13:24] Your sample has less than 1,000 sequences, which does not allow      
+           precise composition estimation. The 'metagenome' preset will be used 
+           instead. If you want to force the empirical sample composition       
+           estimation anyway, use the --force-auto option.                      
+[05:13:24] Estimated compositions written to proviruses_compositions.tsv and    
+           proviruses_compositions.npz.                                         
+[05:13:24] The calibrated scores were computed.                                 
+[05:13:24] Calibrated scores in binary format written to                        
+           proviruses_calibrated_marker_classification.npz.                     
+[05:13:24] Calibrated scores in tabular format written to                       
+           proviruses_calibrated_marker_classification.tsv.                     
+[05:13:24] Calibrated scores in binary format written to                        
+           proviruses_calibrated_nn_classification.npz.                         
+[05:13:24] Calibrated scores in tabular format written to                       
+           proviruses_calibrated_nn_classification.tsv.                         
+[05:13:24] Calibrated scores in binary format written to                        
+           proviruses_calibrated_aggregated_classification.npz.                 
+[05:13:24] Calibrated scores in tabular format written to                       
+           proviruses_calibrated_aggregated_classification.tsv.                 
+[05:13:24] geNomad score-calibration finished!                                  
+╭──────────────────────────────────────────────────────────────────────────────╮
+│  Executing geNomad summary (v1.8.0). This will summarize the results across  │
+│  modules into a classification report.                                       │
+│  ──────────────────────────────────────────────────────────────────────────  │
+│  Outputs:                                                                    │
+│    /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-databa  │
+│    se/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megahit_fin  │
+│    al.contigs_5000.fa/proviruses_summary                                     │
+│    ├── proviruses_summary.json (execution parameters)                        │
+│    ├── proviruses_virus_summary.tsv (virus classification summary)           │
+│    ├── proviruses_plasmid_summary.tsv (plasmid classification summary)       │
+│    ├── proviruses_virus.fna (virus nucleotide FASTA file)                    │
+│    ├── proviruses_plasmid.fna (plasmid nucleotide FASTA file)                │
+│    ├── proviruses_virus_proteins.faa (virus protein FASTA file)              │
+│    ├── proviruses_plasmid_proteins.faa (plasmid protein FASTA file)          │
+│    ├── proviruses_virus_genes.tsv (virus gene annotation data)               │
+│    └── proviruses_plasmid_genes.tsv (plasmid gene annotation data)           │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[05:13:24] Executing genomad summary.                                           
+[05:13:24] Creating the                                                         
+           /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-dat
+           abase/results/viral_contigs/genomad_pass2/STM_0716_E_M_E065_IS1_megah
+           it_final.contigs_5000.fa/proviruses_summary directory.               
+[05:13:24] Using calibrated scores from aggregated-classification.              
+[05:13:24] 0 plasmid(s) and 3 virus(es) were identified.                        
+[05:13:24] Nucleotide sequences were written to proviruses_plasmid.fna and      
+           proviruses_virus.fna.                                                
+[05:13:24] Protein sequences were written to proviruses_plasmid_proteins.faa and
+           proviruses_virus_proteins.faa.                                       
+[05:13:24] Gene annotation data was written to proviruses_plasmid_genes.tsv and 
+           proviruses_virus_genes.tsv.                                          
+[05:13:24] Summary files were written to proviruses_plasmid_summary.tsv and     
+           proviruses_virus_summary.tsv.                                        
+[05:13:24] geNomad summary finished!                                            

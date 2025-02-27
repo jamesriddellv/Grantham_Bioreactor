@@ -1,0 +1,60 @@
+Lmod has detected the following error: The following module(s) are unknown:
+"singularity"
+
+Please check the spelling or version number. Also try "module spider ..."
+It is also possible your cache file is out-of-date; it may help to try:
+  $ module --ignore_cache load "singularity"
+
+Also make sure that all modulefiles written in TCL start with the string
+#%Module
+
+
+
+[2025-02-26 14:34 INFO] VirSorter 2.2.3
+[2025-02-26 14:34 INFO] /miniconda3/bin/virsorter run -i ../data/grantham_assemblies_5kb/STM_0716_E_M_CoAs_E065_E061_megahit_final.contigs_5000.fa -w /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-database/results/viral_contigs/vs2_pass1/STM_0716_E_M_CoAs_E065_E061_megahit_final.contigs_5000.fa --min-length 5000 --keep-original-seq --include-groups dsDNAphage,ssDNA --min-score 0.5 -j 30 all --rerun-incomplete
+[2025-02-26 14:34 INFO] Using /miniconda3/lib/python3.7/site-packages/virsorter/template-config.yaml as config template
+[2025-02-26 14:34 INFO] conig file written to /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-database/results/viral_contigs/vs2_pass1/STM_0716_E_M_CoAs_E065_E061_megahit_final.contigs_5000.fa/config.yaml
+
+[2025-02-26 14:34 INFO] Executing: snakemake --snakefile /miniconda3/lib/python3.7/site-packages/virsorter/Snakefile --directory /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-database/results/viral_contigs/vs2_pass1/STM_0716_E_M_CoAs_E065_E061_megahit_final.contigs_5000.fa --jobs 30 --configfile /fs/scratch/Sullivan_Lab/JamesR/Grantham_Bioreactor/01-build-vOTU-database/results/viral_contigs/vs2_pass1/STM_0716_E_M_CoAs_E065_E061_megahit_final.contigs_5000.fa/config.yaml --latency-wait 600 --rerun-incomplete --nolock  --conda-frontend mamba --conda-prefix /db/conda_envs --use-conda    --quiet  all  --rerun-incomplete 
+Job counts:
+	count	jobs
+	1	all
+	1	check_point_for_reclassify
+	1	classify
+	2	classify_by_group
+	2	classify_full_and_part_by_group
+	1	extract_feature
+	1	extract_provirus_seqs
+	1	finalize
+	2	hmm_features_by_group
+	1	hmm_sort_to_best_hit_taxon
+	2	hmm_sort_to_best_hit_taxon_by_group
+	6	hmmsearch
+	1	merge_classification
+	1	merge_full_and_part_classification
+	2	merge_hmm_gff_features_by_group
+	2	merge_provirus_call_by_group_by_split
+	1	merge_provirus_call_from_groups
+	1	merge_split_hmmtbl
+	2	merge_split_hmmtbl_by_group
+	1	pick_viral_fullseq
+	2	split_gff_by_group
+	34
+cat: iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.1.split.Viruses.splithmmtbl: No such file or directory
+cat: iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.4.split.Viruses.splithmmtbl: No such file or directory
+cat: iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.0.split.Viruses.splithmmtbl: No such file or directory
+cat: iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.2.split.Viruses.splithmmtbl: No such file or directory
+cat: iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.3.split.Viruses.splithmmtbl: No such file or directory
+cat: iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.5.split.Viruses.splithmmtbl: No such file or directory
+[Wed Feb 26 14:34:27 2025]
+Error in rule merge_split_hmmtbl:
+    jobid: 80
+    output: iter-0/all.pdg.Viruses.hmmtbl
+    shell:
+        
+        printf "%s
+" iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.1.split.Viruses.splithmmtbl iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.4.split.Viruses.splithmmtbl iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.0.split.Viruses.splithmmtbl iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.2.split.Viruses.splithmmtbl iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.3.split.Viruses.splithmmtbl iter-0/all.pdg.faa.splitdir/all.pdg.faa.ss.5.split.Viruses.splithmmtbl | xargs cat > iter-0/all.pdg.Viruses.hmmtbl
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+slurmstepd: error: *** JOB 641930 ON c0019 CANCELLED AT 2025-02-26T14:34:58 ***
