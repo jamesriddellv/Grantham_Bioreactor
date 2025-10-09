@@ -24,4 +24,4 @@ time /fs/ess/PAS1117/modules/singularity/CheckV-1.0.3-updated.sif end_to_end $in
 echo "number of additional proviruses detected that need to be re-classified by genomad"
 grep ">" $outDir/proviruses.fna | wc -l
 
-python3 03.1-unmodify_provirus_headers.py
+python3 03-1-unmodify_provirus_headers.py
