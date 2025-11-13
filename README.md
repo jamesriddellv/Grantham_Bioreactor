@@ -1,6 +1,6 @@
-# Bioreactor Virus Text
+# Virus community response and potential role in metabolic rewiring of methane-suppressed soils code base
 
-This repository contains all the code used in "Bioreactor_virus_text"
+This repository contains all the code used in "Virus community response and potential role in metabolic rewiring of methane-suppressed soils"
 
 ## Scripts to generate main figures:
 
