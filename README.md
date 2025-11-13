@@ -1,25 +1,5 @@
 This repository contains all the code used in "Bioreactor_virus_text"
 
-Scripts used to generate main figures:
-1B -> 
-2A ->
-2B -> 
-2C -> 
-2D -> 
-3A -> 
-3B -> 
+Scripts to generate main figures are located in figures/scripts, and associated figure(s) are labeled in the prefix.
 
-Scripts used to generate supplemental figures:
-S1A
-S1B
-S1C
-S1D
-
-S2A
-S2B
-
-S3A
-S3B
-
-S4A
-S4B
+All data files to reproduce each analysis are specified at the top of each script.
