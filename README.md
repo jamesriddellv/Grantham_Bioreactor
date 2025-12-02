@@ -14,9 +14,9 @@ This repository contains all the code used in "Virus community response and pote
 
 **2D:** `figures/scripts/02-D.graphml` (open in cytoscape)
 
-**3A:** `figures/scripts/03-A_vOTU_MAG_profiles_metaT.py`; `figures/scripts/03-A_vOTU_MAG_profiles_metaG.py`
+**4A:** `figures/scripts/03-A_vOTU_MAG_profiles_metaT.py`; `figures/scripts/03-A_vOTU_MAG_profiles_metaG.py`
 
-**3B:** `10-contig_591846-ggridges.R`
+**4B:** `10-contig_591846-ggridges.R`
 
 ---
 
