@@ -1,23 +1,37 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# # Generates Figure 1B and alternate 
+
+# In[ ]:
 
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from print_versions import print_versions
+print_versions(globals())
 
 
-# In[2]:
+# In[ ]:
+
+
+# set fonts and ensure PDF text is editable:
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['font.family'] = 'sans-serif'
+
+
+# In[3]:
 
 
 df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/geTMM_table.csv')
 df.head()
 
 
-# In[3]:
+# In[4]:
 
 
 # get from DRAM table, load only the gene column and fasta column, and count number of genes.
@@ -25,7 +39,7 @@ dram_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vO
 dram_df
 
 
-# In[4]:
+# In[5]:
 
 
 num_genes = dram_df.fasta.value_counts().reset_index()
@@ -33,7 +47,7 @@ num_genes.columns=['MAG', 'num_genes']
 num_genes
 
 
-# In[5]:
+# In[6]:
 
 
 df_grouped = df.drop(columns=['gene']).groupby('fasta').sum().reset_index()
@@ -42,7 +56,7 @@ df_grouped = df_grouped.merge(num_genes, on='MAG', how='left')
 df_grouped.head()
 
 
-# In[6]:
+# In[7]:
 
 
 # Divide columns 1 to 26 (since slicing in iloc is exclusive of the end index)
@@ -51,7 +65,7 @@ df_grouped = df_grouped.drop(columns=['num_genes'])
 df_grouped
 
 
-# In[7]:
+# In[8]:
 
 
 # join active MAGs
@@ -61,13 +75,13 @@ df_grouped = df_grouped.merge(gtdb_df, on='MAG', how='left')
 df_grouped
 
 
-# In[8]:
+# In[9]:
 
 
 df_grouped[['K', 'P', 'C', 'O', 'F', 'G', 'S']] = df_grouped['GTDB'].str.split(';', expand=True)
 
 
-# In[9]:
+# In[10]:
 
 
 # Define the order of columns from highest to lowest resolution
@@ -83,13 +97,13 @@ def get_highest_resolution(row):
 df_grouped['highest_host_tax_rank'] = df_grouped.apply(get_highest_resolution, axis=1)
 
 
-# In[10]:
+# In[11]:
 
 
 df_grouped.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/MAG_GTDB_getmm.tsv', sep='\t', index=False)
 
 
-# In[34]:
+# In[12]:
 
 
 by_tax_rank = df_grouped.groupby(['highest_host_tax_rank']).sum().reset_index()
@@ -105,70 +119,70 @@ by_tax_rank = by_tax_rank[['highest_host_tax_rank', 'STM_0716_E_M_E002', 'STM_07
 by_tax_rank
 
 
-# In[35]:
+# In[13]:
 
 
 by_tax_rank_melted = by_tax_rank.melt(id_vars=['highest_host_tax_rank'], var_name='Sample', value_name='getmm')
 by_tax_rank_melted
 
 
-# In[36]:
+# In[14]:
 
 
 replicate_frame = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/sample_metadata.csv')
 
 
-# In[37]:
+# In[15]:
 
 
 by_tax_rank_melted = by_tax_rank_melted.merge(replicate_frame, on='Sample', how='left')
 
 
-# In[38]:
+# In[16]:
 
 
 by_tax_rank_melted.sort_values(by='getmm', ascending=False)
 
 
-# In[39]:
+# In[17]:
 
 
 # Take the mean across replicates, since there are fewer replicates of unamended day 14
 by_tax_rank_melted = by_tax_rank_melted.groupby(['highest_host_tax_rank', 'treatment', 'day']).agg({'getmm': 'mean'}).reset_index()
 
 
-# In[40]:
+# In[18]:
 
 
 # Add prop abundance
 by_sample_sum_abundance = by_tax_rank_melted.groupby(['treatment', 'day']).agg({'getmm': 'sum'}).reset_index().rename(columns={'getmm': 'total_getmm'})
 
 
-# In[41]:
+# In[19]:
 
 
 by_tax_rank_melted = by_tax_rank_melted.merge(by_sample_sum_abundance, on=['treatment', 'day'], how='left')
 
 
-# In[42]:
+# In[20]:
 
 
 by_tax_rank_melted['prop_abundance'] = by_tax_rank_melted['getmm'] / by_tax_rank_melted['total_getmm']
 
 
-# In[43]:
+# In[21]:
 
 
 by_tax_rank_melted
 
 
-# In[44]:
+# In[22]:
 
 
 by_tax_rank_melted['day'] = by_tax_rank_melted['day'].astype(int)
 
 
-# In[45]:
+# In[23]:
 
 
 # Step 3: Find max prop_abundance per taxon across all groups
@@ -179,26 +193,26 @@ taxa_to_keep = max_abundance[max_abundance >= 0.05].index
 taxa_to_keep
 
 
-# In[46]:
+# In[24]:
 
 
 # Step 5: Create a new column in original df with taxon or "other"
 by_tax_rank_melted['taxon_grouped'] = by_tax_rank_melted['highest_host_tax_rank'].where(by_tax_rank_melted['highest_host_tax_rank'].isin(taxa_to_keep), 'Other')
 
 
-# In[47]:
+# In[25]:
 
 
 by_tax_rank_melted.columns
 
 
-# In[48]:
+# In[26]:
 
 
 by_tax_rank_melted
 
 
-# In[49]:
+# In[27]:
 
 
 by_tax_rank_melted_grouped = (
@@ -210,7 +224,7 @@ by_tax_rank_melted_grouped = (
 by_tax_rank_melted_grouped
 
 
-# In[50]:
+# In[28]:
 
 
 # Step 1: Filter unamended day 0 rows
@@ -231,7 +245,7 @@ day0_unamended['treatment'] = 'catechin'
 by_tax_rank_melted_grouped = pd.concat([by_tax_rank_melted_grouped, day0_unamended], ignore_index=True)
 
 
-# In[53]:
+# In[29]:
 
 
 mag_color_dict = {
@@ -281,7 +295,7 @@ mag_color_dict = {
 }
 
 
-# In[54]:
+# In[30]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -313,7 +327,7 @@ plt.stackplot(
     edgecolor='none'
 )
 plt.xlabel("Day", fontsize=14)
-plt.ylabel("MAG relative abundance by genus (geTMM)", fontsize=14)
+plt.ylabel("MAG relative abundance by genus (GeTMM)", fontsize=14)
 plt.xticks([0, 7, 14, 21, 35], fontsize=12)
 # plt.yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fontsize=12)
 # plt.axvline(7, color='black')
@@ -325,11 +339,11 @@ plt.xticks([0, 7, 14, 21, 35], fontsize=12)
 
 plt.grid(True, alpha=0.5)
 plt.tight_layout()
-plt.savefig(f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/01-B_MAG_stacked_area_{treatment_to_plot}.pdf", dpi=300)
+plt.savefig(f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_MAG_stacked_area_{treatment_to_plot}.pdf", dpi=300)
 plt.show()
 
 
-# In[55]:
+# In[31]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -361,7 +375,7 @@ plt.stackplot(
     edgecolor='none'
 )
 plt.xlabel("Day", fontsize=14)
-plt.ylabel("Average metatranscriptome expression (geTMM)", fontsize=14)
+plt.ylabel("Average metatranscriptome expression (GeTMM)", fontsize=14)
 plt.xticks([0, 7, 14, 21, 35], fontsize=12)
 # plt.yticks([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], fontsize=12)
 # plt.axvline(7, color='black')
@@ -373,11 +387,11 @@ plt.xticks([0, 7, 14, 21, 35], fontsize=12)
 
 plt.grid(True, alpha=0.5)
 plt.tight_layout()
-plt.savefig(f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/01-B_MAG_stacked_area_{treatment_to_plot}.pdf", dpi=300)
+plt.savefig(f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_MAG_stacked_area_{treatment_to_plot}.pdf", dpi=300)
 plt.show()
 
 
-# In[57]:
+# In[32]:
 
 
 ## Create a separate figure just for the legend
@@ -408,7 +422,7 @@ plt.savefig(
 plt.show()
 
 
-# In[58]:
+# In[33]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -442,7 +456,7 @@ plt.stackplot(
     edgecolor='none'
 )
 plt.xlabel("Day", fontsize=14)
-plt.ylabel("vOTU relative abundance by predicted host genus (geTMM)", fontsize=12)
+plt.ylabel("MAG relative abundance (GeTMM)", fontsize=14)
 plt.xticks([0, 7, 14, 21, 35], fontsize=12)
 
 plt.grid(True, alpha=0.5)
@@ -454,7 +468,7 @@ plt.savefig(
 plt.show()
 
 
-# In[59]:
+# In[34]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -488,7 +502,7 @@ plt.stackplot(
     edgecolor='none'
 )
 plt.xlabel("Day", fontsize=14)
-plt.ylabel("vOTU relative abundance by predicted host genus (geTMM)", fontsize=12)
+plt.ylabel("MAG relative abundance (GeTMM)", fontsize=14)
 plt.xticks([0, 7, 14, 21, 35], fontsize=12)
 
 plt.grid(True, alpha=0.5)
@@ -500,8 +514,20 @@ plt.savefig(
 plt.show()
 
 
-# In[ ]:
+# In[35]:
 
 
 get_ipython().system('jupyter nbconvert --to script 004-MAG-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/01-B_MAG_relative_abundance_over_time_getmm')
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
 

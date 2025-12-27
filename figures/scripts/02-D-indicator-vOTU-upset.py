@@ -68,8 +68,14 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/02-D_indicato
 plt.show()
 
 
+# In[1]:
+
+
+get_ipython().system('jupyter nbconvert --to script 005-indicator-vOTU-analysis.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/02-D-indicator-vOTU-upset')
+
+
 # In[ ]:
 
 
-get_ipython().system('jupyter nbconvert --to script 005-indicator-vOTU-analysis.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/02-D-indicator-vOTU-visualization')
+
 

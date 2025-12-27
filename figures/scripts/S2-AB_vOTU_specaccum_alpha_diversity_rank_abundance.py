@@ -479,33 +479,33 @@ plot_diversity_stats(df_prop10, 'active_vOTUs_prop10_relative_abundance.tsv', '/
 # # Plot rank abundance of all vOTUs, then show which get filtered out by each cutoff
 # Needs 1) vOTU, 2) max abundance, and 3) categorized by detection level
 
-# In[10]:
+# In[9]:
 
 
 melted_df = df_1_read_mapped.melt(id_vars='vOTU', var_name='Sample', value_name='abundance')
 melted_df
 
 
-# In[11]:
+# In[10]:
 
 
 replicate_frame = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/sample_metadata.csv')
 replicate_frame.head()
 
 
-# In[12]:
+# In[11]:
 
 
 melted_df = melted_df.merge(replicate_frame, on='Sample', how='left')
 
 
-# In[13]:
+# In[12]:
 
 
 melted_df
 
 
-# In[14]:
+# In[13]:
 
 
 # Your existing aggregation code
@@ -529,13 +529,13 @@ abundance_pivot['log10_catechin'] = abundance_pivot['catechin'].apply(lambda x: 
 abundance_pivot['log10_unamended'] = abundance_pivot['unamended'].apply(lambda x: np.log10(x + 1))
 
 
-# In[15]:
+# In[14]:
 
 
 abundance_pivot
 
 
-# In[16]:
+# In[15]:
 
 
 # Merge with provirus metadata
@@ -548,7 +548,7 @@ abundance_pivot = abundance_pivot.sort_values(by=['is_provirus_aggregated', 'cat
 abundance_pivot['rank'] = np.arange(len(abundance_pivot))
 
 
-# In[17]:
+# In[16]:
 
 
 # add membership data
@@ -558,7 +558,7 @@ prop10 = set(df_prop10.vOTU.unique())
 one_read_mapped = set(df_1_read_mapped.vOTU.unique())
 
 
-# In[28]:
+# In[17]:
 
 
 def assign_color(vOTU):
@@ -578,7 +578,7 @@ def assign_color(vOTU):
         return 'grey'
 
 
-# In[29]:
+# In[18]:
 
 
 abundance_pivot['group'] = abundance_pivot['vOTU'].apply(assign_color)
@@ -588,7 +588,7 @@ abundance_pivot = abundance_pivot.sort_values(by=['is_provirus_aggregated', 'cat
 abundance_pivot['rank'] = np.arange(len(abundance_pivot))
 
 
-# In[31]:
+# In[19]:
 
 
 # Find the boundary between provirus and non-provirus for vertical line
@@ -620,7 +620,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[32]:
+# In[20]:
 
 
 # Find the boundary between provirus and non-provirus for vertical line
@@ -682,7 +682,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[33]:
+# In[21]:
 
 
 # Find the boundary between provirus and non-provirus for vertical line
@@ -736,7 +736,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[39]:
+# In[22]:
 
 
 # Define the desired order of groups
@@ -827,7 +827,7 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_rank_abund
 plt.show()
 
 
-# In[40]:
+# In[23]:
 
 
 get_ipython().system('jupyter nbconvert --to script 002S3-active-virus-alternatives.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S3-AB_vOTU_specaccum_alpha_diversity_rank_abundance')

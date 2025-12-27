@@ -308,10 +308,10 @@ plot_relative_abundance_over_time_getmm('/fs/ess/PAS1117/riddell26/Grantham_Bior
 
 
 
-# In[9]:
+# In[10]:
 
 
-df = pd.read_csv(infile, sep='\t')
+df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs_wide.tsv', sep='\t')
 df = df.set_index('vOTU')
 df.head()
 
@@ -508,39 +508,33 @@ fig_legend = plt.figure(figsize=(8, 6))
 # Create proxy artists (patches) for the legend
 from matplotlib.patches import Patch
 legend_elements = [Patch(facecolor=mag_color_dict.get(col, 'gray'), 
-                    label=col, alpha=0.7) 
-              for col in df_pivot.columns]
+                        label=col, alpha=0.7) 
+                  for col in df_pivot.columns]
 # Reverse the order
 legend_elements = legend_elements[::-1]
 # Create the legend
 legend = fig_legend.legend(handles=legend_elements, 
-                      loc='center',
-                      ncol=1,  # Adjust number of columns as needed
-                      fontsize=20)
-                      # frameon=True)
-                      # fancybox=True,
-                      # shadow=True)
+                          loc='center',
+                          ncol=1,  # Adjust number of columns as needed
+                          fontsize=20)
+                          # frameon=True)
+                          # fancybox=True,
+                          # shadow=True)
 # Remove axes
 fig_legend.gca().set_axis_off()
 # Save the legend
 plt.savefig(
-f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2-C_vOTU_legend_only_simplified.pdf",
-dpi=300,
-bbox_inches='tight'
+    f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2-C_vOTU_legend_only_simplified.pdf",
+    dpi=300,
+    bbox_inches='tight'
 )
 plt.show()
 
 
-# In[ ]:
+# In[12]:
 
 
-
-
-
-# In[51]:
-
-
-get_ipython().system('jupyter nbconvert --to script S3C-vOTU-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S3-C_vOTU_relative_abundance_over_time_getmm')
+get_ipython().system('jupyter nbconvert --to script 002S2C-vOTU-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S3-C_vOTU_relative_abundance_over_time_getmm')
 
 
 # In[ ]:

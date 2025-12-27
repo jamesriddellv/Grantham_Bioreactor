@@ -1,13 +1,25 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# # This notebook produces Figs 2B (vOTU GeTMM relative abundance), S1C (vOTU accumulation/collectors curve based on GeTMM)
+
+# In[ ]:
 
 
 import pandas as pd
 import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.patches import Patch
+# set fonts and ensure PDF text is editable:
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['font.family'] = 'sans-serif'
+
+
+from print_versions import print_versions
+print_versions(globals())
 
 
 # In[2]:
@@ -237,9 +249,6 @@ plt.show()
 
 iphop_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/data/active_vOTUs_active_MAGs_for_cytoscape.tsv', sep='\t')
 iphop_df = iphop_df.sort_values(by=['vOTU', 'Confidence score']).drop_duplicates('vOTU')
-# due to changes in taxonomy, we will change g__Lachnoclostridium to g__Clostridium
-# iphop_df['G'] = iphop_df['G'].str.replace('g__Lachnoclostridium', 'g__Clostridium')
-# iphop_df['highest_host_tax_rank'] = iphop_df['highest_host_tax_rank'].str.replace('g__Lachnoclostridium', 'g__Clostridium')
 iphop_df.head()
 
 
@@ -317,7 +326,7 @@ df.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundan
 
 # ### Plot a rank abundance curve to find the cutoffs
 
-# In[21]:
+# In[19]:
 
 
 import matplotlib.pyplot as plt
@@ -403,31 +412,31 @@ plt.show()
 
 # Based on observations here, let's individually plot vOTUs where max catechin is >25000 and max unamended is >1000
 
-# In[19]:
+# In[20]:
 
 
 abundant_vOTUs = df.loc[(df['max_catechin'] > 25000) | (df['max_unamended'] > 1000)]
 
 
-# In[23]:
+# In[21]:
 
 
 list(abundant_vOTUs['vOTU'])
 
 
-# In[33]:
+# In[22]:
 
 
 abundant_vOTUs_host = list(abundant_vOTUs['highest_host_tax_rank'] + '__' + abundant_vOTUs['vOTU'])
 
 
-# In[34]:
+# In[23]:
 
 
 abundant_vOTUs_host
 
 
-# In[35]:
+# In[24]:
 
 
 def get_append_tax_rank(row):
@@ -437,59 +446,59 @@ def get_append_tax_rank(row):
         return row['highest_host_tax_rank']
 
 
-# In[36]:
+# In[25]:
 
 
 df['highest_host_tax_rank_appended'] = df.apply(get_append_tax_rank, axis=1)
 df
 
 
-# In[37]:
+# In[26]:
 
 
 # Sum getmm values of vOTUs in the same highest host tax rank
 by_tax_rank = df.drop(columns=['highest_host_tax_rank']).groupby('highest_host_tax_rank_appended').sum().reset_index()[keep_cols]
 
 
-# In[38]:
+# In[27]:
 
 
 by_tax_rank_melted = by_tax_rank.melt(id_vars=['highest_host_tax_rank_appended'], var_name='Sample', value_name='abundance')
 by_tax_rank_melted
 
 
-# In[39]:
+# In[28]:
 
 
 replicate_frame = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/sample_metadata.csv')
 
 
-# In[40]:
+# In[29]:
 
 
 by_tax_rank_melted = by_tax_rank_melted.merge(replicate_frame, on='Sample', how='left')
 
 
-# In[41]:
+# In[30]:
 
 
 by_tax_rank_melted
 
 
-# In[42]:
+# In[31]:
 
 
 # Take the mean across replicates, since there are fewer replicates of unamended day 14
 by_tax_rank_melted = by_tax_rank_melted.groupby(['highest_host_tax_rank_appended', 'treatment', 'day']).agg({'abundance': 'mean'}).reset_index()
 
 
-# In[43]:
+# In[32]:
 
 
 by_tax_rank_melted
 
 
-# In[44]:
+# In[33]:
 
 
 # Add prop abundance
@@ -497,31 +506,31 @@ by_sample_sum_abundance = by_tax_rank_melted.groupby(['treatment', 'day']).agg({
 by_sample_sum_abundance
 
 
-# In[45]:
+# In[34]:
 
 
 by_tax_rank_melted = by_tax_rank_melted.merge(by_sample_sum_abundance, on=['treatment', 'day'], how='left')
 
 
-# In[46]:
+# In[35]:
 
 
 by_tax_rank_melted['prop_abundance'] = by_tax_rank_melted['abundance'] / by_tax_rank_melted['total_getmm']
 
 
-# In[47]:
+# In[36]:
 
 
 by_tax_rank_melted
 
 
-# In[48]:
+# In[37]:
 
 
 by_tax_rank_melted['day'] = by_tax_rank_melted['day'].astype(int)
 
 
-# In[49]:
+# In[38]:
 
 
 # Step 1: Make sure 'taxon' is the correct column name
@@ -542,13 +551,13 @@ taxa_to_keep = max_abundance[max_abundance >= 0.04].index
 print(taxa_to_keep)
 
 
-# In[50]:
+# In[39]:
 
 
 set(taxa_to_keep) - set(abundant_vOTUs_host)
 
 
-# In[51]:
+# In[40]:
 
 
 taxa_to_keep = ['Other',
@@ -579,26 +588,26 @@ taxa_to_keep = ['Other',
 by_tax_rank_melted['taxon_grouped'] = by_tax_rank_melted['highest_host_tax_rank_appended'].where(by_tax_rank_melted['highest_host_tax_rank_appended'].isin(taxa_to_keep), 'Other')
 
 
-# In[52]:
+# In[41]:
 
 
 by_tax_rank_melted.columns
 
 
-# In[53]:
+# In[42]:
 
 
 by_tax_rank_melted
 
 
-# In[54]:
+# In[43]:
 
 
 by_tax_rank_melted_grouped = by_tax_rank_melted.groupby(['treatment', 'day', 'taxon_grouped']).agg(taxon_grouped_abundance=('abundance', 'sum'), taxon_grouped_prop_abundance=('prop_abundance', 'sum')).reset_index()
 by_tax_rank_melted_grouped
 
 
-# In[55]:
+# In[44]:
 
 
 # Step 1: Filter unamended day 0 rows
@@ -619,13 +628,13 @@ day0_unamended['treatment'] = 'catechin'
 by_tax_rank_melted_grouped = pd.concat([by_tax_rank_melted_grouped, day0_unamended], ignore_index=True)
 
 
-# In[56]:
+# In[45]:
 
 
 by_tax_rank_melted_grouped
 
 
-# In[57]:
+# In[46]:
 
 
 mag_color_dict = {
@@ -675,13 +684,13 @@ mag_color_dict = {
 }
 
 
-# In[58]:
+# In[47]:
 
 
 list(mag_color_dict.keys())
 
 
-# In[59]:
+# In[48]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -734,7 +743,7 @@ plt.savefig(
 plt.show()
 
 
-# In[60]:
+# In[49]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -787,28 +796,75 @@ plt.savefig(
 plt.show()
 
 
-# In[61]:
+# In[52]:
 
 
-## Create a separate figure just for the legend
-fig_legend = plt.figure(figsize=(8, 6))
-# Create proxy artists (patches) for the legend
+non_contig_taxa = [
+    t for t in taxa_to_keep
+    if t != 'Other' and 'contig' not in t
+]
+
+# Create a mapping function for the 'highest_host_tax_rank_appended' column
+def assign_legend_group(taxa):
+    if taxa in non_contig_taxa:
+        return taxa
+    elif 'contig' in taxa and taxa in taxa_to_keep:
+        # These are the specific contigs you want to keep separate
+        return taxa
+    else:
+        # Everything else goes into 'Other'
+        return 'Other'
+
+# Apply the mapping to get the final grouping counts
+vOTU_counts = df['highest_host_tax_rank_appended'].apply(assign_legend_group).value_counts()
+vOTU_counts
+
+
+# In[54]:
+
+
 from matplotlib.patches import Patch
-legend_elements = [Patch(facecolor=mag_color_dict.get(col, 'gray'), 
-                        label=col, alpha=0.7) 
-                  for col in df_pivot.columns]
-# Reverse the order
+
+# 1. Create the legend elements with N-values appended
+legend_elements = []
+for col in df_pivot.columns:
+    count = vOTU_counts.get(col, 0) # Safely get the count
+
+    # Check if the label should include the N-value: 
+    # It must NOT contain "contig" in its name.
+    if "contig" not in col:
+        # Format the label as "Group Name (N=XX)"
+        label = f"{col} (N={count})"
+    else:
+        # For 'contig' groups, keep the label as is
+        label = col
+
+    # Create the Patch element
+    patch = Patch(
+        facecolor=mag_color_dict.get(col, 'gray'),
+        label=label,
+        alpha=0.7
+    )
+    legend_elements.append(patch)
+
+
+# 2. Generate the legend figure
+fig_legend = plt.figure(figsize=(8, 6))
+
+# Reverse the order (as specified in your original code)
 legend_elements = legend_elements[::-1]
+
 # Create the legend
-legend = fig_legend.legend(handles=legend_elements, 
-                          loc='center',
-                          ncol=1,  # Adjust number of columns as needed
-                          fontsize=20)
-                          # frameon=True)
-                          # fancybox=True,
-                          # shadow=True)
+legend = fig_legend.legend(
+    handles=legend_elements,
+    loc='center',
+    ncol=1,  # Adjust number of columns as needed
+    fontsize=20
+)
+
 # Remove axes
 fig_legend.gca().set_axis_off()
+
 # Save the legend
 plt.savefig(
     f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/02-C_vOTU_legend_only_simplified.pdf",
@@ -818,25 +874,25 @@ plt.savefig(
 plt.show()
 
 
-# In[62]:
+# In[51]:
 
 
 df.loc[df['highest_host_tax_rank'] == 'g__JAGFXR01']
 
 
-# In[63]:
+# In[52]:
 
 
 102652.241407 / 750.845462
 
 
-# In[64]:
+# In[53]:
 
 
 by_tax_rank_melted_grouped
 
 
-# In[65]:
+# In[54]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -881,7 +937,7 @@ plt.savefig(
 plt.show()
 
 
-# In[66]:
+# In[55]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -927,14 +983,43 @@ plt.savefig(
 plt.show()
 
 
+# # What proportion of JAGFXR01 is contig_591846 activity?
+
+# In[57]:
+
+
+jag_df = by_tax_rank_melted_grouped[by_tax_rank_melted_grouped['treatment'] == 'catechin']
+
+
+# In[59]:
+
+
+jag_df = jag_df.loc[jag_df['taxon_grouped'].str.contains('JAGFXR01')]
+jag_df
+
+
+# In[63]:
+
+
+jag_df = jag_df.merge(jag_df.groupby(['treatment', 'day']).agg({'taxon_grouped_abundance': 'sum'}).reset_index(), on=['treatment','day'], suffixes=['', '_total'])
+             
+
+
+# In[66]:
+
+
+jag_df['prop_total'] = jag_df['taxon_grouped_abundance'] / jag_df['taxon_grouped_abundance_total']
+jag_df
+
+
+# In[69]:
+
+
+jag_df.loc[jag_df['taxon_grouped'] == 'g__JAGFXR01__contig_591846']['prop_total'].mean()
+
+
 # In[ ]:
 
 
-
-
-
-# In[ ]:
-
-
-
+get_ipython().system('jupyter nbconvert --to script 004-vOTU-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/02-C_vOTU_relative_abundance_over_time_getmm')
 
