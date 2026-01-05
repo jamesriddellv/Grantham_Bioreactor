@@ -153,6 +153,7 @@ print('number of active vOTUs from reference dataset with a bioreactor host pred
 
 
 # number of active vOTUs with an active host
+# active MAGs downloaded from 
 active_MAGs = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/geTMM_table.csv')
 len(active_MAGs)
 
@@ -243,20 +244,20 @@ active_vOTUs_active_MAGs['Host genome'].nunique()
 
 # # wrangle provirus metadata to add to iPHoP results for cytoscape visualization
 
-# In[30]:
+# In[29]:
 
 
 vOTU_metadata = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/vOTUs_filtered_metadata.tsv', sep='\t')
 is_provirus = vOTU_metadata[['vOTU', 'is_provirus_aggregated']].drop_duplicates()
 
 
-# In[31]:
+# In[30]:
 
 
 vOTU_metadata.columns
 
 
-# In[32]:
+# In[31]:
 
 
 # export provirus and their coordinates for induced prophage analysis
@@ -264,84 +265,84 @@ prophage_df = vOTU_metadata.loc[vOTU_metadata['is_provirus_aggregated'] == True]
 prophage_df
 
 
-# In[33]:
+# In[32]:
 
 
 genomad_prophage = prophage_df.loc[prophage_df['vOTU'].str.contains('provirus')]
 genomad_prophage.head()
 
 
-# In[34]:
+# In[33]:
 
 
 genomad_prophage['scaffold'] = genomad_prophage['vOTU'].apply(lambda x: x.split('|')[0])
 
 
-# In[35]:
+# In[34]:
 
 
 genomad_prophage[['start', 'stop']] = genomad_prophage['coordinates'].str.split('-', expand=True)
 
 
-# In[36]:
+# In[35]:
 
 
 genomad_prophage
 
 
-# In[37]:
+# In[36]:
 
 
 genomad_prophage = genomad_prophage[['scaffold', 'vOTU', 'start', 'stop']]
 genomad_prophage.columns = ['scaffold', 'fragment', 'start', 'stop']
 
 
-# In[38]:
+# In[37]:
 
 
 # make sure contig # is before >contig_432973 since these are what are on the MAGs.
 genomad_prophage = genomad_prophage.loc[genomad_prophage['scaffold'].apply(lambda x: int(x.split('_', 1)[1]) <= 432973)]
 
 
-# In[39]:
+# In[38]:
 
 
-genomad_prophage.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/09-predict-prophage-activity/data/prophage_coordinates_for_propagate.tsv', sep='\t', index=False)
+# genomad_prophage.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/09-predict-prophage-activity/data/prophage_coordinates_for_propagate.tsv', sep='\t', index=False)
 
 
 # # Merge with iPHoP
 
-# In[40]:
+# In[39]:
 
 
 iphop_df = iphop_df.rename(columns={'Virus': 'vOTU'})
 
 
-# In[41]:
+# In[40]:
 
 
 iphop_df = iphop_df.merge(is_provirus, on='vOTU', how='left')
 
 
-# In[42]:
+# In[41]:
 
 
 iphop_df
 
 
-# In[43]:
+# In[42]:
 
 
 iphop_df[['K', 'P', 'C', 'O', 'F', 'G', 'S']] = iphop_df['Host taxonomy'].str.split(';', expand=True)
 
 
-# In[44]:
+# In[43]:
 
 
 iphop_df['G'].nunique()
 
 
-# In[45]:
+# In[44]:
 
 
 # Define the order of columns from highest to lowest resolution
@@ -357,7 +358,7 @@ def get_highest_resolution(row):
 iphop_df['highest_host_tax_rank'] = iphop_df.apply(get_highest_resolution, axis=1)
 
 
-# In[46]:
+# In[45]:
 
 
 iphop_df['vOTU_is_active'] = iphop_df['vOTU'].isin(active_vOTUs)
@@ -365,19 +366,19 @@ iphop_df['MAG_is_active'] = iphop_df['Host genome'].isin(active_MAGs_list)
 iphop_df['MAG_is_stordalen'] = iphop_df['Host genome'].str.startswith('Add_')
 
 
-# In[47]:
+# In[46]:
 
 
 iphop_df.head()
 
 
-# In[48]:
+# In[47]:
 
 
 iphop_df.loc[iphop_df['vOTU'].isin(top_vOTUs)].drop_duplicates(subset=['vOTU'])
 
 
-# In[49]:
+# In[48]:
 
 
 iphop_df.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/data/vOTUs_MAGs_no_cutoff_for_cytoscape.tsv', sep='\t', index=False)
@@ -385,39 +386,39 @@ iphop_df.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/data/vOTU
 
 # # Visualize host prediction stats
 
-# In[51]:
+# In[49]:
 
 
 iphop_host_stats = iphop_df.drop_duplicates(['Host genome']).groupby(['highest_host_tax_rank']).agg({'Host genome': 'nunique', 'MAG_is_active': 'sum'}).reset_index().sort_values(by='MAG_is_active', ascending=False)
 iphop_host_stats
 
 
-# In[52]:
+# In[50]:
 
 
 iphop_virus_stats = iphop_df.drop_duplicates(['vOTU', 'highest_host_tax_rank']).groupby(['highest_host_tax_rank']).agg({'vOTU': 'nunique', 'vOTU_is_active': 'sum'}).reset_index().sort_values(by='vOTU', ascending=False)
 
 
-# In[53]:
+# In[51]:
 
 
 iphop_virus_stats
 
 
-# In[54]:
+# In[52]:
 
 
 combined_stats = iphop_host_stats.merge(iphop_virus_stats, on='highest_host_tax_rank', how='outer')
 combined_stats
 
 
-# In[55]:
+# In[53]:
 
 
 combined_stats.loc[combined_stats['highest_host_tax_rank'] == 'g__Terracidiphilus']
 
 
-# In[56]:
+# In[54]:
 
 
 import pandas as pd
@@ -566,9 +567,15 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_iphop_meta
 plt.show()
 
 
+# In[55]:
+
+
+iphop_df.loc[iphop_df['vOTU'] == 'contig_591846']
+
+
 # # Filter for active MAGs
 
-# In[57]:
+# In[56]:
 
 
 active_vOTUs_active_MAGs = (iphop_df
@@ -579,82 +586,450 @@ active_vOTUs_active_MAGs = (iphop_df
 )
 
 
-# In[58]:
+# In[57]:
 
 
 active_vOTUs_active_MAGs
 
 
-# In[59]:
+# In[58]:
 
 
 active_vOTUs_active_MAGs.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/data/active_vOTUs_active_MAGs_for_cytoscape.tsv', sep='\t', index=False)
 
 
-# In[60]:
+# In[59]:
 
 
 active_vOTUs_active_MAGs['highest_host_tax_rank'].nunique()
 
 
-# In[61]:
+# In[60]:
 
 
 active_vOTUs_active_MAGs.loc[active_vOTUs_active_MAGs['K'] == 'd__Archaea'].highest_host_tax_rank.nunique()
 
 
-# In[62]:
+# In[61]:
 
 
 active_vOTUs_active_MAGs.loc[active_vOTUs_active_MAGs['K'] == 'd__Bacteria'].highest_host_tax_rank.nunique()
 
 
-# In[63]:
+# In[62]:
 
 
 active_vOTUs_active_MAGs['P'].nunique()
 
 
-# In[64]:
+# In[63]:
 
 
 active_vOTUs_active_MAGs['S'].nunique()
 
 
-# In[65]:
+# In[64]:
 
 
 active_vOTUs_active_MAGs['G'].nunique()
 
 
-# In[66]:
+# In[65]:
 
 
 active_vOTUs_active_MAGs['Main method'].value_counts()
 
 
-# In[70]:
+# In[66]:
 
 
 active_vOTUs_active_MAGs
 
 
-# In[71]:
+# In[67]:
 
 
 active_vOTUs_active_MAGs['Main method'].value_counts().to_frame().reset_index()
 
 
-# In[72]:
+# In[68]:
 
 
 # How many predictions to the genus level?
 len(active_vOTUs_active_MAGs.loc[active_vOTUs_active_MAGs['highest_host_tax_rank'].str.startswith('g__')]) / len(active_vOTUs_active_MAGs)
 
 
-# # How many vOTUs have a host prediction out of how many are active?
+# In[69]:
+
+
+p_grouped = (
+    active_vOTUs_active_MAGs
+    .sort_values(by='Confidence score',ascending=False)
+    .drop_duplicates(subset='vOTU')
+    .groupby('P').agg({'vOTU': 'count'})
+).reset_index()
+
+
+# In[70]:
+
+
+p_grouped
+
+
+# In[71]:
+
+
+# Sort by abundance for aesthetics (optional)
+p_grouped = p_grouped.sort_values(by='vOTU', ascending=False)
+
+# Plot a single stacked bar
+fig, ax = plt.subplots(figsize=(10, 2))
+
+# Start position of the bar
+start = 0
+for _, row in p_grouped.iterrows():
+    ax.barh(y=0, width=row['vOTU'], left=start, label=row['P'])
+    start += row['vOTU']
+
+# Remove y-axis ticks and spines
+ax.set_yticks([])
+ax.spines['left'].set_visible(False)
+ax.spines['right'].set_visible(False)
+ax.spines['top'].set_visible(False)
+
+# Add legend outside the plot
+ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title='Phylum')
+
+# Axis labels and title
+ax.set_xlabel('vOTU Count')
+ax.set_title('40% of active vOTUs were predicted to infect an active MAG')
+
+plt.tight_layout()
+plt.show()
+
+
+# In[72]:
+
+
+g_grouped = (
+    active_vOTUs_active_MAGs
+    .sort_values(by='Confidence score',ascending=False)
+    .drop_duplicates(subset='vOTU')
+    .groupby('G').agg({'vOTU': 'count'})
+).reset_index()
+
 
 # In[73]:
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Group data
+g_grouped = (
+    active_vOTUs_active_MAGs
+    .sort_values(by='Confidence score', ascending=False)
+    .drop_duplicates(subset='vOTU')
+    .groupby('G')
+    .agg({'vOTU': 'count'})
+    .reset_index()
+)
+
+# Color dictionary
+mag_color_dict = {
+    'Other': 'black',
+    
+    # g__Clostridium group (red shades)
+    'g__Clostridium': '#9E0B0F',
+
+    # g__JAGFXR01 group (purple shades)
+    'g__JAGFXR01': '#845EC2',
+
+    # g__Paludibacter group (red-pink shades)
+    'g__Paludibacter': '#FF1744',
+
+    # g__Pseudomonas_E group (gold shades)
+    'g__Pseudomonas_E': '#FFD700',
+}
+
+# 🧮 Combine unrecognized genera as "Other"
+recognized_genera = set(mag_color_dict.keys()) - {'Other'}
+g_grouped['G'] = g_grouped['G'].apply(lambda g: g if g in recognized_genera else 'Other')
+
+# Re-group to merge multiple "Other" rows
+g_grouped = g_grouped.groupby('G', as_index=False)['vOTU'].sum()
+
+# Sort by abundance
+g_grouped = g_grouped.sort_values(by='vOTU', ascending=True)
+
+# 🎨 Plot vertically (stacked bar)
+fig, ax = plt.subplots(figsize=(6, 6))  # tall & narrow
+
+start = 0
+for _, row in g_grouped.iterrows():
+    color = mag_color_dict.get(row['G'], mag_color_dict['Other'])
+    ax.bar(x=0, height=row['vOTU'], bottom=start, color=color, edgecolor='none', label=row['G'])
+    start += row['vOTU']
+
+# 🧹 Clean up axes
+ax.set_xticks([])
+for spine in ['left', 'right', 'top']:
+    ax.spines[spine].set_visible(False)
+
+# 🏷️ Legend (unique and reversed order for readability)
+handles, labels = ax.get_legend_handles_labels()
+unique = dict(zip(labels[::-1], handles[::-1]))  # reverse order to match stack
+ax.legend(unique.values(), unique.keys(), bbox_to_anchor=(1.05, 1), loc='upper left', title='Genus')
+
+# 🪶 Labels and title
+ax.set_ylabel('vOTU Count')
+ax.set_title('40% of active vOTUs were predicted to infect an active MAG', pad=15)
+
+plt.tight_layout()
+plt.savefig('vOTU_predictions_by_genus_vertical.pdf', dpi=300)
+plt.show()
+
+
+# In[74]:
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Group data
+g_grouped = (
+    active_vOTUs_active_MAGs
+    .sort_values(by='Confidence score', ascending=False)
+    .drop_duplicates(subset='vOTU')
+    .groupby('G')
+    .agg({'vOTU': 'count'})
+    .reset_index()
+)
+
+# Color dictionary
+mag_color_dict = {
+    'Other': 'black',
+
+    # g__Clostridium group (red shades)
+    'g__Clostridium': '#9E0B0F',
+
+    # g__JAGFXR01 group (purple shades)
+    'g__JAGFXR01': '#845EC2',
+
+    # g__Paludibacter group (red-pink shades)
+    'g__Paludibacter': '#FF1744',
+
+    # g__Pseudomonas_E group (gold shades)
+    'g__Pseudomonas_E': '#FFD700',
+}
+
+# 🧮 Combine unrecognized genera as "Other"
+recognized_genera = set(mag_color_dict.keys()) - {'Other'}
+g_grouped['G'] = g_grouped['G'].apply(lambda g: g if g in recognized_genera else 'Other')
+
+# Merge all "Other" rows
+g_grouped = g_grouped.groupby('G', as_index=False)['vOTU'].sum()
+
+# Sort for visual clarity
+g_grouped = g_grouped.sort_values(by='vOTU', ascending=False)
+
+# Colors
+colors = [mag_color_dict.get(g, mag_color_dict['Other']) for g in g_grouped['G']]
+
+# Compute total for labeling
+total = g_grouped['vOTU'].sum()
+
+# 🥧 Plot pie chart
+fig, ax = plt.subplots(figsize=(7, 7))
+
+wedges, texts, autotexts = ax.pie(
+    g_grouped['vOTU'],
+    labels=g_grouped['G'],
+    autopct=lambda pct: f'{pct:.1f}%\n({int(pct/100*total)})',  # show % and count
+    startangle=90,
+    colors=colors,
+    textprops={'fontsize': 20, 'color': 'black'}
+)
+
+# Equal aspect ratio ensures pie is circular
+ax.axis('equal')
+
+# 🏷️ Title
+ax.set_title('40% of active vOTUs were predicted to infect an active MAG', pad=20)
+
+# Improve label readability (optional)
+plt.setp(autotexts, size=9, weight='bold', color='white')
+plt.tight_layout()
+
+# Save and show
+plt.savefig('vOTU_predictions_by_genus_pie.pdf', dpi=300)
+plt.show()
+
+
+# In[75]:
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Group data
+g_grouped = (
+    active_vOTUs_active_MAGs
+    .sort_values(by='Confidence score', ascending=False)
+    .drop_duplicates(subset='vOTU')
+    .groupby('G')
+    .agg({'vOTU': 'count'})
+    .reset_index()
+)
+
+# Color dictionary
+mag_color_dict = {
+    'Other': 'black',
+
+    # g__Clostridium group (red shades)
+    'g__Clostridium': '#9E0B0F',
+
+    # g__JAGFXR01 group (purple shades)
+    'g__JAGFXR01': '#845EC2',
+
+    # g__Paludibacter group (red-pink shades)
+    'g__Paludibacter': '#FF1744',
+
+    # g__Pseudomonas_E group (gold shades)
+    'g__Pseudomonas_E': '#FFD700',
+}
+
+# 🧮 Combine unrecognized genera as "Other"
+recognized_genera = set(mag_color_dict.keys()) - {'Other'}
+g_grouped['G'] = g_grouped['G'].apply(lambda g: g if g in recognized_genera else 'Other')
+
+# Merge all "Other" rows
+g_grouped = g_grouped.groupby('G', as_index=False)['vOTU'].sum()
+
+# Sort for visual clarity
+g_grouped = g_grouped.sort_values(by='vOTU', ascending=False)
+
+# Colors
+colors = [mag_color_dict.get(g, mag_color_dict['Other']) for g in g_grouped['G']]
+
+# Compute total for labeling
+total = g_grouped['vOTU'].sum()
+
+# 🥧 Plot pie chart
+fig, ax = plt.subplots(figsize=(7, 7))
+
+wedges= ax.pie(
+    g_grouped['vOTU'],
+    startangle=90,
+    colors=colors
+)
+
+# Equal aspect ratio ensures pie is circular
+ax.axis('equal')
+
+# 🏷️ Title
+ax.set_title('40% of active vOTUs were predicted to infect an active MAG', pad=20)
+
+# Improve label readability (optional)
+plt.setp(autotexts, size=9, weight='bold', color='white')
+plt.tight_layout()
+
+# Save and show
+plt.savefig('vOTU_predictions_by_genus_pie.pdf', dpi=300)
+plt.show()
+
+
+# In[76]:
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Group data
+g_grouped = (
+    active_vOTUs_active_MAGs
+    .sort_values(by='Confidence score', ascending=False)
+    .drop_duplicates(subset='vOTU')
+    .groupby('G')
+    .agg({'vOTU': 'count'})
+    .reset_index()
+)
+
+# Color dictionary
+mag_color_dict = {
+    'Other': 'black',
+
+    # g__Clostridium group (red shades)
+    'g__Clostridium': '#9E0B0F',
+
+    # g__JAGFXR01 group (purple shades)
+    'g__JAGFXR01': '#845EC2',
+
+    # g__Paludibacter group (red-pink shades)
+    'g__Paludibacter': '#FF1744',
+
+    # g__Pseudomonas_E group (gold shades)
+    'g__Pseudomonas_E': '#FFD700',
+}
+
+# 🧮 Combine unrecognized genera as "Other"
+recognized_genera = set(mag_color_dict.keys()) - {'Other'}
+g_grouped['G'] = g_grouped['G'].apply(lambda g: g if g in recognized_genera else 'Other')
+
+# Merge all "Other" rows
+g_grouped = g_grouped.groupby('G', as_index=False)['vOTU'].sum()
+
+# Sort for visual clarity
+g_grouped = g_grouped.sort_values(by='vOTU', ascending=False)
+
+# Add the "Unassigned" 60% wedge
+assigned_total = g_grouped['vOTU'].sum()
+unassigned_total = assigned_total * 1.5  # 60% of total (since 40% assigned)
+g_grouped = pd.concat([
+    g_grouped,
+    pd.DataFrame({'G': ['Unassigned'], 'vOTU': [unassigned_total]})
+])
+
+# Define colors (add grey for unassigned)
+colors = [mag_color_dict.get(g, mag_color_dict['Other']) for g in g_grouped['G']]
+colors[-1] = 'grey'  # Unassigned wedge
+
+# Compute total for labeling
+total = g_grouped['vOTU'].sum()
+
+# 🥧 Plot pie chart
+fig, ax = plt.subplots(figsize=(7, 7))
+
+wedges = ax.pie(
+    g_grouped['vOTU'],
+    startangle=90,
+    colors=colors
+)
+
+# Equal aspect ratio ensures pie is circular
+ax.axis('equal')
+
+# 🏷️ Title
+ax.set_title('40% of active vOTUs were predicted to infect an active MAG', pad=20)
+
+# Make the "Unassigned" label a bit bolder
+for i, label in enumerate(g_grouped['G']):
+    if label == 'Unassigned':
+        texts[i].set_fontweight('bold')
+        autotexts[i].set_color('black')
+
+# Improve label readability
+plt.setp(autotexts, size=9, weight='bold', color='white')
+plt.tight_layout()
+
+# Save and show
+plt.savefig('vOTU_predictions_by_genus_partial_pie.pdf', dpi=300)
+plt.show()
+
+
+# # How many vOTUs have a host prediction out of how many are active?
+
+# In[ ]:
 
 
 num_vOTU_hosts = (active_vOTUs_active_MAGs
@@ -670,7 +1045,7 @@ num_vOTU_hosts = (active_vOTUs_active_MAGs
 num_vOTU_hosts
 
 
-# In[74]:
+# In[ ]:
 
 
 import seaborn as sns
@@ -688,16 +1063,16 @@ slope, intercept, r_value, p_value, std_err = linregress(
 )
 
 # Set log scale for both axes
-plt.xscale('log')
-plt.yscale('log')
+# plt.xscale('log')
+# plt.yscale('log')
 
 r_squared = r_value**2
 
 # Add R² text to the plot
-plt.text(0.25, 0.95, f'R² = {r_squared:.3f}', transform=ax.transAxes, 
+plt.text(0.00, 0.6, f'R² = {r_squared:.3f}', transform=ax.transAxes, 
          fontsize=12, verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
-plt.title('num vOTUs predicted to infect highest_host_tax_rank vs number of MAGs in highest_host_tax_rank')
+plt.title('number of predicted vOTUs vs number of MAGs in host genus')
 
 # Display the plot
 plt.show()
@@ -705,31 +1080,31 @@ plt.show()
 
 # # Methanogen viruses?
 
-# In[62]:
+# In[ ]:
 
 
 active_vOTUs_active_MAGs.loc[active_vOTUs_active_MAGs['Host taxonomy'].str.contains('Methan')]
 
 
-# In[63]:
+# In[ ]:
 
 
 iphop_df.loc[iphop_df['Host taxonomy'].str.contains('Methan')].vOTU.nunique()
 
 
-# In[64]:
+# In[ ]:
 
 
 iphop_df.loc[(iphop_df['Host taxonomy'].str.contains('Methan')) & (iphop_df['vOTU_is_active'] == True)].vOTU.nunique()
 
 
-# In[65]:
+# In[ ]:
 
 
 iphop_df.loc[(iphop_df['Host taxonomy'].str.contains('Methan')) & (iphop_df['vOTU_is_active'] == True)].vOTU.unique()
 
 
-# In[66]:
+# In[ ]:
 
 
 iphop_df.loc[(iphop_df['Host taxonomy'].str.contains('Methan')) & (iphop_df['vOTU_is_active'] == True)].G.unique()
@@ -739,7 +1114,7 @@ iphop_df.loc[(iphop_df['Host taxonomy'].str.contains('Methan')) & (iphop_df['vOT
 
 # # Do more abundant hosts have more phages?
 
-# In[67]:
+# In[ ]:
 
 
 host_taxonomy.columns = ['MAG', 'Host taxonomy']
@@ -747,32 +1122,32 @@ active_MAGs['MAG'] = 'Add_' + active_MAGs['MAG']
 active_MAGs
 
 
-# In[68]:
+# In[ ]:
 
 
 active_MAGs = active_MAGs.merge(host_taxonomy, on='MAG', how='left')
 
 
-# In[69]:
+# In[ ]:
 
 
 active_MAGs[['K', 'P', 'C', 'O', 'F', 'G', 'S']] = active_MAGs['Host taxonomy'].str.split(';', expand=True)
 active_MAGs['highest_host_tax_rank'] = active_MAGs.apply(get_highest_resolution, axis=1)
 
 
-# In[70]:
+# In[ ]:
 
 
 active_MAGs = active_MAGs.drop(columns=['gene', 'K', 'P', 'C', 'O', 'F', 'G', 'S'])
 
 
-# In[71]:
+# In[ ]:
 
 
 active_MAGs_melted = active_MAGs.melt(id_vars=['MAG', 'Host taxonomy', 'highest_host_tax_rank'], var_name='Sample', value_name='abundance')
 
 
-# In[72]:
+# In[ ]:
 
 
 # get max and average
@@ -780,14 +1155,14 @@ host_metaT_max = active_MAGs_melted.groupby('highest_host_tax_rank').agg({'abund
 host_metaT_average = active_MAGs_melted.groupby('highest_host_tax_rank').agg({'abundance': 'mean'}).reset_index().sort_values(by='abundance', ascending=False)
 
 
-# In[73]:
+# In[ ]:
 
 
 host_metaT_max = host_metaT_max.merge(num_vOTU_hosts, on='highest_host_tax_rank', how='inner')
 host_metaT_average = host_metaT_average.merge(num_vOTU_hosts, on='highest_host_tax_rank', how='inner')
 
 
-# In[74]:
+# In[ ]:
 
 
 import seaborn as sns
@@ -818,7 +1193,7 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S4-vOTU_count
 plt.show()
 
 
-# In[75]:
+# In[ ]:
 
 
 import seaborn as sns
@@ -848,7 +1223,7 @@ plt.text(0.05, 0.95, f'R² = {r_squared:.3f}', transform=ax.transAxes,
 plt.show()
 
 
-# In[76]:
+# In[ ]:
 
 
 import seaborn as sns
@@ -889,6 +1264,12 @@ plt.title('num vOTUs predicted to infect highest_host_tax_rank vs average abunda
 
 # Display the plot
 plt.show()
+
+
+# In[ ]:
+
+
+get_ipython().system('jupyter nbconvert --to script 02-prep-for-host-predictions.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/03-predict-hosts/scripts/06-host-prediction-EDA')
 
 
 # In[ ]:
