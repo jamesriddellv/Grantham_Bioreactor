@@ -69,7 +69,7 @@ manual_vOTU_check_list = random.sample(vOTUs, 100)
 manual_vOTU_check_df = vOTU_df.loc[vOTU_df['vOTU'].isin(manual_vOTU_check_list)]
 manual_vOTU_check_df.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/vOTU_manual_check_100.tsv', sep='\t', index=False)
 
-# six vOTUs from manual inspection were marekd as "not viral". 
+# six vOTUs from manual inspection were marked as "not viral". 
 # We will use these to construct rules for not viral sequences.
 
 # use concatenated annotations for filtering
