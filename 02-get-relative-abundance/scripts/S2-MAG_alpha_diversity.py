@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[26]:
 
 
-# plot clostridium, UBA-1794, and figure out if there are different MAGs enriched at the different timepoints.
-# See if these clusters align with the vOTUs being different, and see if the predictions line up as well.
+# Plot MAG alpha diversity from expression data in McGivern et al. 2025
 
 
-# In[2]:
+# In[55]:
 
 
 import pandas as pd
@@ -16,15 +15,25 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+import matplotlib as mpl
+# set fonts and ensure PDF text is editable:
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
+mpl.rcParams['font.family'] = 'sans-serif'
 
-# In[3]:
+
+from print_versions import print_versions
+print_versions(globals())
+
+
+# In[56]:
 
 
 metaT = pd.read_excel('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/MAG_abundance_table.xlsx')
 metaT.head()
 
 
-# In[4]:
+# In[57]:
 
 
 # Drop Condensed Tannin samples
@@ -34,7 +43,7 @@ metaT = metaT.drop(columns=['STM_0716_E_M_E029', 'STM_0716_E_M_E030', 'STM_0716_
                         'STM_0716_E_M_E125', 'STM_0716_E_M_E126', 'STM_0716_E_M_E127'])
 
 
-# In[5]:
+# In[58]:
 
 
 # drop zeroes
@@ -47,7 +56,7 @@ long_df = metaT.melt(id_vars=["MAG", "GTDB"],
 long_df
 
 
-# In[6]:
+# In[59]:
 
 
 # add replicates
@@ -99,7 +108,7 @@ replicate_frame.columns = ['sample_treatment_day', 'replicate', 'Sample', 'treat
 replicate_frame['treatment_day_replicate'] = replicate_frame['treatment'] + '_' + replicate_frame['day'].astype(str) + '_' + replicate_frame['replicate'].astype(str)
 
 
-# In[7]:
+# In[60]:
 
 
 melted_df = long_df.merge(replicate_frame, on='Sample', how='left')
@@ -107,43 +116,43 @@ melted_df['replicate'] = melted_df['replicate'].astype(str)
 melted_df.head()
 
 
-# In[10]:
+# In[61]:
 
 
 melted_df.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/getmms_REV_active_MAGs_melted.tsv', sep='\t', index=False)
 
 
-# In[11]:
+# In[62]:
 
 
 melted_df.MAG.nunique()
 
 
-# In[12]:
+# In[35]:
 
 
 active_MAGs = melted_df
 
 
-# In[13]:
+# In[36]:
 
 
 active_MAGs['day'] = active_MAGs['day'].astype(int)
 
 
-# In[14]:
+# In[37]:
 
 
 active_MAGs
 
 
-# In[15]:
+# In[38]:
 
 
 active_MAGs[['K', 'P', 'C', 'O', 'F', 'G', 'S']] = active_MAGs['GTDB'].str.split(';', expand=True)
 
 
-# In[16]:
+# In[39]:
 
 
 # Define the order of columns from highest to lowest resolution
@@ -159,13 +168,13 @@ def get_highest_resolution(row):
 active_MAGs['highest_host_tax_rank'] = active_MAGs.apply(get_highest_resolution, axis=1)
 
 
-# In[17]:
+# In[40]:
 
 
 active_MAGs.loc[active_MAGs['highest_host_tax_rank'] == 'g__Methanosarcina'].MAG.unique()
 
 
-# In[18]:
+# In[41]:
 
 
 min_value = active_MAGs['abundance'].min()
@@ -173,25 +182,25 @@ shift_value = 1 - min_value
 active_MAGs['log2_abundance'] = active_MAGs['abundance'].apply(lambda x: np.log2(x+shift_value))
 
 
-# In[19]:
+# In[42]:
 
 
 active_MAGs.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/active_MAGs_abundance_with_metadata.tsv', sep='\t', index=False)
 
 
-# In[20]:
+# In[43]:
 
 
 active_MAGs.head()
 
 
-# In[21]:
+# In[44]:
 
 
 data_mtx = active_MAGs.pivot_table(values='abundance', index='Sample', columns='MAG')
 
 
-# In[24]:
+# In[45]:
 
 
 # Read metadata
@@ -202,13 +211,13 @@ metadata['treatment'] = metadata['treatment'].replace({'unamended': 'U', 'CT': '
 metadata['timepoint'] = metadata['timepoint'].apply(lambda x: int(x.split('y')[1]))
 
 
-# In[25]:
+# In[46]:
 
 
 metadata = metadata.loc[metadata['treatment'] != 'T']
 
 
-# In[26]:
+# In[47]:
 
 
 # Plot MAG diversity statistics
@@ -216,7 +225,7 @@ from skbio.diversity.alpha import simpson
 metadata['inverse_simpson'] = data_mtx.apply(lambda x: simpson(x), axis=1).values
 
 
-# In[27]:
+# In[48]:
 
 
 # Plot MAG diversity statistics
@@ -224,13 +233,13 @@ from skbio.diversity.alpha import shannon
 metadata['shannon'] = data_mtx.apply(lambda x: shannon(x), axis=1).values
 
 
-# In[28]:
+# In[49]:
 
 
 metadata
 
 
-# In[30]:
+# In[54]:
 
 
 # Plot individual points and a mean line per treatment
@@ -271,12 +280,8 @@ plt.grid(True, alpha=0.3)
 # Remove legend
 plt.legend().remove()
 
-# Remove plot borders (spines)
-for spine in plt.gca().spines.values():
-    spine.set_visible(False)
-
 plt.tight_layout()
-plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_MAG_alpha_diversity.png', dpi=300)
+plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_MAG_alpha_diversity.pdf', dpi=300)
 plt.show()
 
 
@@ -805,6 +810,12 @@ reads_mapped['prop_mapped_to_MAGs'] = reads_mapped['reads mapped to MAGs'] / rea
 
 
 reads_mapped
+
+
+# In[1]:
+
+
+get_ipython().system('jupyter nbconvert --to script 05-MAG_abundance.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/scripts/S2-MAG_alpha_diversity')
 
 
 # In[ ]:
