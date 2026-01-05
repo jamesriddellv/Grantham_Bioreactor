@@ -17,15 +17,14 @@ setwd("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/s
 
 figDir <- "/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/"
 
-#read in and format abundance data
-# >5 reads map to lytic gene from 001-identify-active-virus-structural-genes 
-df <- read.csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_5x_vOTUs_corrected_wide.tsv', sep='\t')
-
 # >1 gene / 10kb with a read mapped
-# df <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/active_vOTUs_1_gene_per_10kb_relative_abundance.tsv", sep='\t')
+# df <- read.csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1_gene_per_10kb_vOTUs_wide.tsv', sep='\t')
 
 # >1 read mapped
-# df <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/active_vOTUs_1_read_mapped_relative_abundance.tsv", sep='\t')
+df <- read.csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs_wide.tsv', sep='\t')
+
+# >10% coverage
+# df <- read.csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_prop10_vOTUs_wide.tsv', sep='\t')
 
 
 metadata <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/data/metaT_sample_metadata.csv")
@@ -61,11 +60,11 @@ bray_dist <- vegdist(log_df, method = "bray", binary = FALSE, diag = FALSE, uppe
 
 #some data will need to be a matrix or dataframe later
 bray_matrix_df <- as.matrix(bray_dist)
-write.table(bray_matrix_df, file = "/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU_aggregated_bray_curtis.csv")
+# write.table(bray_matrix_df, file = "/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU_aggregated_bray_curtis.csv")
 
-pdf(file = paste(figDir, "SX_df_bray.pdf", sep=''), width = 10, height = 10);
-heatmap(bray_matrix_df, main = "Bray Curtis")
-dev.off()
+# pdf(file = paste(figDir, "SX_df_bray.pdf", sep=''), width = 10, height = 10);
+# heatmap(bray_matrix_df, main = "Bray Curtis")
+# dev.off()
 
 # Plot boxplots of bray-curtis distance between samples from different treatments but same day to compare to MAGs
 # Are viruses more sensitive to changes in the environment than the microbes?
@@ -151,15 +150,16 @@ set.seed(123)
 #affinity propagation
 df_ap_clust <- apcluster(negDistMat(r=2), bray_matrix_df, details = TRUE, seed=42)
 plot(df_ap_clust)
-
-#r here is a power used to scale the data and allow for more easily recognizable separations
-pdf(file = paste(figDir, "SX_df_ap_cluster.pdf", sep=''), width = 10, height = 10);
-heatmap(df_ap_clust)
-dev.off()
 df_ap_clust
 
-df_ap_clustK <- apclusterK(negDistMat(r=2), bray_matrix_df, K=4, details = TRUE, seed=42)
-df_ap_clustK
+#r here is a power used to scale the data and allow for more easily recognizable separations
+# pdf(file = paste(figDir, "SX_df_ap_cluster.pdf", sep=''), width = 10, height = 10);
+# heatmap(df_ap_clust)
+# dev.off()
+# df_ap_clust
+
+# df_ap_clustK <- apclusterK(negDistMat(r=2), bray_matrix_df, K=4, details = TRUE, seed=42)
+# df_ap_clustK
 
 km <- kmeans(bray_matrix_df, centers = 5, nstart = 25)
 km
@@ -168,7 +168,7 @@ df_types <- data.frame()
 
 types <- data.frame()
 #add each cluster to tibble
-df_clusters <- 5
+df_clusters <- 6
 df_types <- data.frame()  # Initialize an empty data frame
 
 for (i in 1:df_clusters) {
@@ -201,11 +201,11 @@ NMDS_df
 # k is the value of dimensions you want the data to be constrained to for a reported stress value
 # we must reach convergence
 
-pdf(file = paste(figDir, "SX_NMDS_stress_df.pdf", sep=''), width = 12, height = 9);
-stress_df <- stressplot(NMDS_df)
-plot(stress_df)
-dev.off()
-
+# pdf(file = paste(figDir, "SX_NMDS_stress_df.pdf", sep=''), width = 12, height = 9);
+# stress_df <- stressplot(NMDS_df)
+# plot(stress_df)
+# dev.off()
+# dev.off()
 # stress plot is just a relationship between ordination distance and dissimilarity
 # goodness of fit values here, how well the visual representation of the data matches the dissimilarity matrix
 # for stress < 0.1 good; 0.1<x<0.2 questionable; >0.2 bad
@@ -227,12 +227,6 @@ pch_fac_df <- factor(df_types2$day, levels=c('0', '7', '14', '21', '35'))
 pch_df <- c(4, 15, 17, 18, 19)
 cols_df <- c("#FC9B2D", "#7ACBC3") # C U
 
-# now plot the ordination
-pdf(file = paste(figDir, "SX_NMDS_treatment_day.pdf", sep=''), width = 12, height = 12);
-plot(NMDS_df, type="p", display="sites", cex.axis=2, cex.lab=2)
-points(NMDS_df, display = "sites", col = cols_df[fac_df], pch = pch_df[pch_fac_df], cex=5)
-dev.off()
-
 ## With stat_ellipse for each affinity propagation cluster ##
 
 # Ensure NMDS results are in a data frame
@@ -251,63 +245,10 @@ names(pch_df) <- c('0', '7', '14', '21', '35')
 cols_df <- c("#FC9B2D", "#7ACBC3") # Catechin, Control, Unamended
 names(cols_df) <- levels(factor(df_types2$treatment))
 
-pdf(file = paste(figDir, "03-A_NMDS_treatment_day_stat_ellipse.pdf", sep=''), width = 12, height = 12);
-
-# Plot using ggplot2 with stat_ellipse()
-ggplot(NMDS_points, aes(x = NMDS1, y = NMDS2, color = treatment, shape = factor(day))) +
-  geom_point(size = 15) +  # Plot points
-  scale_color_manual(values = cols_df) +
-  scale_shape_manual(values = pch_df) +
-  stat_ellipse(aes(group = cluster), level = 0.95, linetype = 2) +  # Ellipses per cluster
-  theme_minimal() +
-  theme(axis.text = element_text(size = 30),
-        axis.title = element_text(size = 30),
-        # legend.text = element_text(size = 30),
-        # legend.title = element_text(size = 30)) +
-        legend.position = "none") +
-  labs(title = "", 
-       color = "Treatment", shape = "Day")
-
-dev.off()
-
-pdf(file = paste(figDir, "03-A_NMDS_treatment_day_stat_ellipse_daylabel.pdf", sep=''), width = 12, height = 12);
-
-# Plot using ggplot2 with stat_ellipse()
-ggplot(NMDS_points, aes(x = NMDS1, y = NMDS2, color = treatment)) +
-  geom_text(aes(label = day), size = 15) +  # Plot day numbers instead of points
-  scale_color_manual(values = cols_df) +
-  stat_ellipse(aes(group = cluster), level = 0.95, linetype = 2) +  # Ellipses per cluster
-  theme_minimal() +
-  theme(axis.text = element_text(size = 30),
-        axis.title = element_text(size = 30),
-        legend.position = "none") +
-  labs(title = "", color = "Treatment")
-
-dev.off()
-
 # Compute convex hulls
 hull_data <- NMDS_points %>%
   group_by(cluster) %>%
   slice(chull(NMDS1, NMDS2))
-
-pdf(file = paste(figDir, "03-A_NMDS_treatment_day_polygon_daylabel.pdf", sep=''), width = 12, height = 12);
-ggplot(NMDS_points, aes(x = NMDS1, y = NMDS2, color = treatment)) +
-  geom_text(aes(label = day), size = 15) +  # Plot day numbers instead of points
-  geom_polygon(data = hull_data, aes(x = NMDS1, y = NMDS2, group = cluster),
-               fill = NA, color = "black", linetype = "solid", linewidth = 1) +  # Convex hulls
-  scale_color_manual(values = cols_df) +
-  scale_shape_manual(values = pch_df) +
-  stat_ellipse(aes(group = cluster), level = 0.95, linetype = 2) +  # Optional: Ellipses
-  theme_minimal() +
-  theme(axis.text = element_text(size = 30),
-        axis.title = element_text(size = 30),
-        legend.position = "none") +
-  labs(title = "", 
-       color = "Treatment", shape = "Day")
-
-dev.off()
-
-
 
 # Run PCA
 PCA_df <- prcomp(log_df, center = FALSE, scale. = FALSE)
@@ -320,24 +261,6 @@ y_label <- paste0("PC2 (", round(explained_var[2], 1), "%)")
 # Combine with metadata (assuming you have a metadata dataframe called metadata_df)
 PCA_points <- cbind(PCA_scores, df_types2)  # metadata_df must have 'treatment', 'day', and 'cluster'
 
-# Plot to PDF
-pdf(file = paste0(figDir, "03-A_PCA_treatment_day_stat_ellipse_daylabel.pdf"), width = 12, height = 12)
-
-ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment)) +
-  geom_text(aes(label = day), size = 15) +
-  scale_color_manual(values = cols_df) +
-  # stat_ellipse(aes(group = cluster), level = 0.95, linetype = 2) +
-  theme_minimal() +
-  theme(axis.text = element_text(size = 30),
-        axis.title = element_text(size = 30),
-        legend.position = "none") +
-  labs(x = x_label,
-       y = y_label,
-       title = "", color = "Treatment")
-
-
-dev.off()
-
 # Calculate convex hulls for each cluster
 matched_clusters_PCA <- df_types[match(rownames(PCA_points), rownames(df_types)), ]
 PCA_points$cluster <- matched_clusters_PCA  # Add clusters from df_types
@@ -346,25 +269,9 @@ hull_data <- PCA_points %>%
   group_by(cluster) %>%
   slice(chull(PC1, PC2))
 
-pdf(file = paste0(figDir, "02-B_PCA_treatment_day_polygon_daylabel.pdf"), width = 12, height = 12)
-
-ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment)) +
-  geom_polygon(data = hull_data, aes(x = PC1, y = PC2, group = cluster),
-               fill = NA, color = "black", linetype = "solid", linewidth = 1) +  # Add hulls
-  geom_text(aes(label = day), size = 15) +
-  scale_color_manual(values = cols_df) +
-  theme_minimal() +
-  theme(axis.text = element_text(size = 30),
-        axis.title = element_text(size = 30),
-        legend.position = "none") +
-  labs(x = x_label,
-       y = y_label,
-       title = "", color = "Treatment")
-
-dev.off()
-
-pdf(file = paste0(figDir, "02-B_PCA_treatment_day_polygon_shapes.pdf"), width = 12, height = 12)
-
+pdf(file = paste0(figDir, "S2-B_PCA_treatment_day_polygon_daylabel_1_read.pdf"), width = 12, height = 12)
+# pdf(file = paste0(figDir, "S2-B_PCA_treatment_day_polygon_daylabel_1_gene_per_10kb.pdf"), width = 12, height = 12)
+# pdf(file = paste0(figDir, "S2-B_PCA_treatment_day_polygon_daylabel_prop10.pdf"), width = 12, height = 12)
 ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment, shape = factor(day))) +
   geom_polygon(data = hull_data, aes(x = PC1, y = PC2, group = cluster),
                fill = NA, color = "black", linetype = "solid", linewidth = 1) +  # Add hulls
@@ -381,7 +288,6 @@ ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment, shape = factor(day))
        title = "")
 
 dev.off()
-
 
 ####################################
 #            PERMANOVA            #

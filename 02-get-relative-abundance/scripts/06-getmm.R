@@ -1,5 +1,5 @@
 library(edgeR)
-rpk = read.delim('/users/PAS1573/riddell26/data_5x_rpk.csv', sep=',')
+rpk = read.delim('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/data_5x_rpk.csv', sep=',')
 rownames(rpk) <- rpk$gene
 rpk$gene <- NULL
 group <- c(rep("A",ncol(rpk)))
