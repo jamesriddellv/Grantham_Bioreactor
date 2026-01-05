@@ -60,7 +60,7 @@ vOTU_df = vOTU_df.merge(genomad_annotations, on=['vOTU', 'gene_position'], how='
 # fill NAs with ''
 vOTU_df = vOTU_df.fillna('')
 
-# get 200 random vOTUs
+# get 100 random vOTUs
 import random
 
 random.seed(42)
