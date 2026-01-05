@@ -18,8 +18,5 @@ This repository contains all the code used in "Virus community response and pote
 
 **4A:** `figures/scripts/03-A_vOTU_MAG_profiles_metaT.py`; `figures/scripts/03-A_vOTU_MAG_profiles_metaG.py`
 
-**4B:** `10-contig_591846-ggridges.R`
+**4B:** `02-get-relative-abundance/scripts/10-contig_591846-ggridges.R`
 
----
-
-All data files to reproduce each analysis are specified at the top of each script.
