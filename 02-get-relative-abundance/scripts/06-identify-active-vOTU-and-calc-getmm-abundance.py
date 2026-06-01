@@ -32,23 +32,29 @@ df
 # In[3]:
 
 
-# Filter for virus structural or lysis genes
-lytic_keywords = 'capsid|tail|packag|portal|lysis|terminase|spike|baseplate|internal virion|neck|prohead'
+df.vOTU.nunique()
 
 
 # In[4]:
 
 
-lytic_genes = df.loc[df['concat_annotations'].str.contains(lytic_keywords)]
+# Filter for virus structural or lysis genes
+lytic_keywords = 'capsid|tail|packag|portal|lysis|terminase|spike|baseplate|internal virion|neck|prohead'
 
 
 # In[5]:
 
 
-lytic_genes['gene_position'] = lytic_genes['gene_position'].astype(int)
+lytic_genes = df.loc[df['concat_annotations'].str.contains(lytic_keywords)]
 
 
 # In[6]:
+
+
+lytic_genes['gene_position'] = lytic_genes['gene_position'].astype(int)
+
+
+# In[7]:
 
 
 # Add gene key so we can filter the htseq table
@@ -58,22 +64,22 @@ gff_df['gene_position'] = gff_df['gene'].apply(lambda x: int(x.split('_')[1]))
 gff_df.head()
 
 
-# In[7]:
+# In[8]:
 
 
 lytic_genes = lytic_genes.merge(gff_df, on=['vOTU', 'gene_position'], how='left')
 
 
-# In[8]:
+# In[9]:
 
 
 # number of vOTUs with a lytic gene
 lytic_genes['vOTU'].nunique(), lytic_genes['vOTU'].nunique()/df.vOTU.nunique()
 
 
-# 77% of vOTUs identified have at least one of these genes
+# 74.6% of vOTUs identified have at least one of these genes
 
-# In[9]:
+# In[10]:
 
 
 # get the gene IDs of each gene with a structural phage or lytic gene annotation
@@ -82,7 +88,7 @@ lytic_gene_list = list(lytic_genes['gene'].unique())
 
 # ## 2. Load htseq count table and set all read counts <5 to zero.
 
-# In[10]:
+# In[11]:
 
 
 import pandas as pd
@@ -123,13 +129,13 @@ data = data.drop(columns=['STM_0716_E_M_E029', 'STM_0716_E_M_E030', 'STM_0716_E_
                        'STM_0716_E_M_E125', 'STM_0716_E_M_E126', 'STM_0716_E_M_E127'])
 
 
-# In[11]:
+# In[12]:
 
 
 data
 
 
-# In[12]:
+# In[13]:
 
 
 # graph gene mapping stats
@@ -152,13 +158,13 @@ lib_melted = lib.melt(id_vars=['sample', 'total'],
 lib_melted
 
 
-# In[13]:
+# In[14]:
 
 
 lib_melted.loc[lib_melted['sample'] == 'STM_0716_E_M_E035']
 
 
-# In[14]:
+# In[15]:
 
 
 # Alternative using pandas plotting (simpler but less customizable)
@@ -176,7 +182,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[15]:
+# In[16]:
 
 
 # Drop last five metadata rows
@@ -189,7 +195,7 @@ data['is_lytic'] = data['gene'].isin(lytic_gene_list)
 data.tail()
 
 
-# In[16]:
+# In[17]:
 
 
 import numpy as np
@@ -242,7 +248,7 @@ def plot_dataframe_histogram(df):
 plot_dataframe_histogram(data.iloc[:, 1:27])
 
 
-# In[17]:
+# In[18]:
 
 
 # Make a copy to mask such that counts < 5 are set to zero
@@ -255,33 +261,33 @@ numeric_cols = data_5x.columns[1:27]
 data_5x[numeric_cols] = data_5x[numeric_cols].apply(lambda x: x.mask(x < 5, 0))
 
 
-# In[18]:
+# In[19]:
 
 
 data_5x
 
 
-# In[19]:
+# In[20]:
 
 
 data_5x_melted = data_5x.melt(id_vars=['vOTU', 'gene', 'gene_position', 'is_lytic'], var_name='Sample', value_name='readcount')
 data_5x_melted.head()
 
 
-# In[20]:
+# In[21]:
 
 
 data_5x_melted['is_lytic_and_readcount_5x'] = (data_5x_melted['is_lytic'] == True) & (data_5x_melted['readcount'] >= 5)
 
 
-# In[21]:
+# In[22]:
 
 
 vOTU_lytic_in_sample = data_5x_melted.groupby(['vOTU', 'Sample'])['is_lytic_and_readcount_5x'].any().reset_index()
 vOTU_lytic_in_sample.head()
 
 
-# In[22]:
+# In[23]:
 
 
 # Add conditional to figure out if vOTUs are covered at least 10% on the reverse strand
@@ -299,7 +305,7 @@ vOTU_lytic_in_sample_prop_covered.head()
 
 # ## Compute GeTMM relative abundance of each vOTU
 
-# In[23]:
+# In[24]:
 
 
 # get read counts in reads per 1000 (rpk)
@@ -319,13 +325,13 @@ data_5x_rpk = data_5x_len.iloc[:, :26].divide(len_kb, axis=0)
 data_5x_rpk.head()
 
 
-# In[24]:
+# In[25]:
 
 
 data_5x_rpk.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/data_5x_rpk.csv')
 
 
-# In[25]:
+# In[26]:
 
 
 # Compute getmms in EdgeR by feeding data_5x_rpk.csv to 06-getmm.R
@@ -347,7 +353,7 @@ range(getmms_df)
 '''
 
 
-# In[26]:
+# In[27]:
 
 
 getmms_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_5x_vOTUs.tsv', sep='\t')
@@ -355,7 +361,7 @@ getmms_df = getmms_df.reset_index(names='gene').merge(data_5x[['vOTU', 'gene']],
 getmms_df.head()
 
 
-# In[27]:
+# In[28]:
 
 
 # Get the mean getmm value per vOTU in each sample
@@ -370,7 +376,7 @@ getmms_vOTU = (
 getmms_vOTU
 
 
-# In[28]:
+# In[29]:
 
 
 # merge with vOTU_lytic_in_sample_prop_covered[['vOTU', 'Sample' 'is_active']] and set to zero if is_active is False
@@ -379,7 +385,7 @@ getmms_vOTU_corrected['getmm_abundance_corrected'] = getmms_vOTU_corrected['getm
 getmms_vOTU_corrected
 
 
-# In[29]:
+# In[30]:
 
 
 # write to csv
@@ -401,7 +407,7 @@ getmms_vOTU_corrected_wide.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor
 
 # # Compute GeTMM for data with 1 read mapped cutoff and with 1 gene / 10kb cutoff
 
-# In[30]:
+# In[31]:
 
 
 # get read counts in reads per 1000 (rpk)
@@ -421,13 +427,13 @@ data_rpk = data_len.iloc[:, :26].divide(data_len_kb, axis=0)
 data_rpk.head()
 
 
-# In[31]:
+# In[32]:
 
 
 data_rpk.to_csv('data_rpk.csv')
 
 
-# In[32]:
+# In[33]:
 
 
 getmms_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs.tsv', sep='\t')
@@ -435,7 +441,7 @@ getmms_df = getmms_df.reset_index(names='gene').merge(data[['vOTU', 'gene']], ho
 getmms_df.head()
 
 
-# In[33]:
+# In[34]:
 
 
 # Get the mean getmm value per vOTU in each sample
@@ -450,7 +456,7 @@ getmms_vOTU = (
 getmms_vOTU
 
 
-# In[34]:
+# In[35]:
 
 
 # drop vOTUs where they are zero in every sample
@@ -460,14 +466,14 @@ at_least_one_read = at_least_one_read.loc[at_least_one_read['one_read_mapped'] =
 at_least_one_read_list = set(at_least_one_read.vOTU)
 
 
-# In[35]:
+# In[36]:
 
 
 getmms_vOTU_one_read = getmms_vOTU.loc[getmms_vOTU['vOTU'].isin(at_least_one_read_list)]
 getmms_vOTU_one_read
 
 
-# In[36]:
+# In[37]:
 
 
 # write to csv
@@ -487,7 +493,7 @@ print('num vOTUs active in at least one sample: ' + str(len(getmms_vOTU_wide)))
 getmms_vOTU_wide.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs_wide.tsv', sep='\t')
 
 
-# In[37]:
+# In[38]:
 
 
 # Get >10% coverage
@@ -505,14 +511,14 @@ getmms_vOTU_one_read_prop10['is_active_prop10'] = getmms_vOTU_one_read_prop10['p
 getmms_vOTU_one_read_prop10.head()
 
 
-# In[38]:
+# In[39]:
 
 
 getmms_vOTU_one_read_prop10['getmm_abundance_prop10'] = getmms_vOTU_one_read_prop10['getmm_abundance'].where(getmms_vOTU_one_read_prop10['is_active_prop10'], 0)
 getmms_vOTU_one_read_prop10.head()
 
 
-# In[39]:
+# In[40]:
 
 
 # write to csv
@@ -534,7 +540,7 @@ getmms_vOTU_wide.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-re
 
 # # Get 1 gene per 10kb vOTUs
 
-# In[40]:
+# In[41]:
 
 
 # it will be a subset of 1 read mapped.
@@ -556,13 +562,13 @@ num_mapped_genes_per_sample = num_mapped_genes_per_sample.merge(df[['vOTU', 'len
 num_mapped_genes_per_sample['at_least_1_gene_mapped_per_10_kb'] = (num_mapped_genes_per_sample['is_mapped'] / (num_mapped_genes_per_sample['length'] / 10000)) >= 1
 
 
-# In[41]:
+# In[42]:
 
 
 getmms_vOTU_one_read = getmms_vOTU_one_read.merge(num_mapped_genes_per_sample[['vOTU', 'Sample', 'at_least_1_gene_mapped_per_10_kb']], on=['vOTU', 'Sample'], how='left')
 
 
-# In[42]:
+# In[43]:
 
 
 getmms_vOTU_one_read['getmm_abundance'] = getmms_vOTU_one_read.apply(
@@ -571,13 +577,13 @@ getmms_vOTU_one_read['getmm_abundance'] = getmms_vOTU_one_read.apply(
 )
 
 
-# In[43]:
+# In[44]:
 
 
 getmms_vOTU_one_read
 
 
-# In[44]:
+# In[45]:
 
 
 # write to csv
@@ -597,7 +603,7 @@ print('num vOTUs active in at least one sample: ' + str(len(getmms_vOTU_wide)))
 getmms_vOTU_wide.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1_gene_per_10kb_vOTUs_wide.tsv', sep='\t')
 
 
-# In[45]:
+# In[46]:
 
 
 # 1. Convert active_df to binary (1 = active, 0 = inactive)
@@ -635,10 +641,64 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S1E_vOTUs_vs_
 plt.show()
 
 
-# In[46]:
+# In[49]:
 
 
-get_ipython().system('jupyter nbconvert --to script 001-identify-active-vOTU-and-calc-getmm-abundance.ipynb')
+# Check min, average, and std deviation of reads mapped per kb.
+data_5x_rpk = data_5x_rpk.merge(getmms_df[['gene', 'vOTU']], on='gene', how='left')
+
+
+# In[57]:
+
+
+conservative_5x_rpk = data_5x_rpk.loc[data_5x_rpk['vOTU'].isin(getmms_vOTU['vOTU'])]
+
+
+# In[58]:
+
+
+conservative_5x_rpk
+
+
+# In[61]:
+
+
+conservative_5x_rpk.iloc[:,1:-1]
+
+
+# In[62]:
+
+
+# 1. Flatten the sliced DataFrame to a 1D numpy array
+arr = conservative_5x_rpk.iloc[:, 1:-1].values.flatten()
+
+# 2. Remove the zeroes
+arr_clean = arr[arr != 0]
+
+# 3. Calculate the statistics
+min_val = np.min(arr_clean)
+max_val = np.max(arr_clean)
+mean_val = np.mean(arr_clean)
+std_val = np.std(arr_clean)
+
+# Display results
+print(f"Flattened Array (no zeros): {arr_clean}")
+print(f"Min: {min_val}")
+print(f"Max: {max_val}")
+print(f"Average: {mean_val}")
+print(f"Standard Deviation: {std_val}")
+
+
+# In[47]:
+
+
+get_ipython().system('jupyter nbconvert --to script 001-identify-active-vOTU-and-calc-getmm-abundance.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/scripts/06-identify-active-vOTU-and-calc-getmm-abundance')
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:

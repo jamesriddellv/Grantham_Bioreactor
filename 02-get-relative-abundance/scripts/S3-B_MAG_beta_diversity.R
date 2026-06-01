@@ -1,9 +1,11 @@
 library(vegan)
 library(apcluster)
-library(readxl)
 library(dplyr)
 library(ggplot2)
-library(cowplot)
+library(factoextra)
+library(cluster)
+library(readxl)
+
 
 
 #set location of your dataset and resulting data - change this for your own location
@@ -68,11 +70,6 @@ bray_dist <- vegdist(log_df, method = "bray", binary = FALSE, diag = FALSE, uppe
 
 #some data will need to be a matrix or dataframe later
 bray_matrix_df <- as.matrix(bray_dist)
-# write.table(bray_matrix_df, file = "/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU_aggregated_bray_curtis.csv")
-
-# pdf(file = paste(figDir, "SX_df_bray.pdf", sep=''), width = 10, height = 10);
-# heatmap(bray_matrix_df, main = "Bray Curtis")
-# dev.off()
 
 # Plot boxplots of bray-curtis distance between samples from different treatments but same day to compare to MAGs
 # Are viruses more sensitive to changes in the environment than the microbes?
@@ -123,190 +120,205 @@ ggplot(bray_df_filtered, aes(x = Day, y = Distance)) +
   theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5))  # Center the title
 
+#################################################
+# Test PERMANOVA catechin vs unamended day 7-35 #
+#################################################
 
+# ── 1. Prepare Metadata for Statistics ───────────────────────────────────────
+# We need a metadata dataframe that matches the rows of 'log_df'
+sample_info <- data.frame(row_names = rownames(log_df)) %>%
+  mutate(
+    treatment = sub("_.*", "", row_names),
+    # Extract numeric day and handle suffixes like .1, .2
+    day_num = as.numeric(regmatches(row_names, regexpr("\\d+", row_names)))
+  )
 
+# ── 1. Define and Filter Clusters ───────────────────────────────────────────
 
-# Determine Optimal number of clusters #
+# Ensure formal_cluster is correctly mapped in the sample_info
+cluster_data <- sample_info %>%
+  mutate(
+    # Create the three specific groups you requested
+    test_group = case_when(
+      day_num == 7                                ~ "Group1_Day7_Baseline",
+      treatment == "U" & day_num %in% c(14,21,35) ~ "Group2_Unamended_Response",
+      treatment == "C" & day_num %in% c(14,21,35) ~ "Group3_Catechin_Response",
+      TRUE                                        ~ NA_character_
+    )
+  ) %>%
+  # Remove Day 0 or any samples not in our 3 groups
+  filter(!is.na(test_group))
 
-# Elbow method
-fviz_nbclust(bray_matrix_df, kmeans, method = "wss") +
-  #   geom_vline(xintercept = 4, linetype = 2)+
-  labs(subtitle = "Elbow method")
+# ── 2. Sync Distance Matrix with Filtered Metadata ──────────────────────────
 
-# Silhouette method
-fviz_nbclust(bray_matrix_df, kmeans, method = "silhouette")+
-  labs(subtitle = "Silhouette method")
+# Subset the transformed data to match our filtered rows
+log_df_filtered <- log_df[cluster_data$row_names, ]
 
-# Gap statistic
-# nboot = 50 to keep the function speedy. 
-# recommended value: nboot= 500 for your analysis.
-# Use verbose = FALSE to hide computing progression.
-set.seed(123)
+# Calculate Bray-Curtis distance on the filtered subset
+dist_filtered <- vegdist(log_df_filtered, method = "bray")
 
-#calculate gap statistic based on number of clusters
-#gap_stat <- clusGap(bray_matrix_df,
-#                    FUN = kmeans,
-#                    nstart = 25,
-#                    K.max = 20,
-#                    B = 500)
+# ── 3. Run PERMANOVA on the Three Clusters ──────────────────────────────────
 
-#plot number of clusters vs. gap statistic
-#fviz_gap_stat(gap_stat)
+# We test 'test_group' which contains our 3 defined states
+permanova_clusters <- adonis2(dist_filtered ~ test_group, 
+                              data = cluster_data, 
+                              permutations = 999)
 
+print("=== PERMANOVA: Testing the 3 Biological Clusters ===")
+print(permanova_clusters)
 
+# ── 4. Pairwise Comparison (Post-hoc) ───────────────────────────────────────
+# Since PERMANOVA only tells you if *any* group is different, 
+# you might want to know if Group 2 is specifically different from Group 3.
+# If you have the 'pairwise.adonis2' or 'RVAideMemoire' library:
+# ── Pairwise PERMANOVA using adonis2 ──────────────────────────────────────────
 
-#affinity propagation
-df_ap_clust <- apcluster(negDistMat(r=2), bray_matrix_df, details = TRUE, seed=42)
-plot(df_ap_clust)
-df_ap_clust
-
-#r here is a power used to scale the data and allow for more easily recognizable separations
-# pdf(file = paste(figDir, "SX_df_ap_cluster.pdf", sep=''), width = 10, height = 10);
-# heatmap(df_ap_clust)
-# dev.off()
-# df_ap_clust
-
-# df_ap_clustK <- apclusterK(negDistMat(r=2), bray_matrix_df, K=4, details = TRUE, seed=42)
-# df_ap_clustK
-
-km <- kmeans(bray_matrix_df, centers = 5, nstart = 25)
-km
-
-df_types <- data.frame()
-
-types <- data.frame()
-#add each cluster to tibble
-df_clusters <- 6
-df_types <- data.frame()  # Initialize an empty data frame
-
-for (i in 1:df_clusters) {
-  df_temp_types <- data.frame("site" = names(df_ap_clust[[i]]),
-                              "type" = paste0("Cluster ", i))
+# Function to run pairwise adonis2
+run_pairwise_adonis <- function(dist_obj, groups) {
+  groups <- as.factor(groups)
+  levels <- levels(groups)
+  pairs <- combn(levels, 2)
+  results <- data.frame()
   
-  df_types <- bind_rows(df_types, df_temp_types)
+  for(i in 1:ncol(pairs)) {
+    # Get labels for the pair
+    g1 <- pairs[1, i]
+    g2 <- pairs[2, i]
+    
+    # Identify samples belonging to this pair
+    idx <- which(groups %in% c(g1, g2))
+    sub_dist <- as.matrix(dist_obj)[idx, idx]
+    sub_meta <- groups[idx]
+    
+    # Run adonis2
+    ad <- adonis2(as.dist(sub_dist) ~ sub_meta, permutations = 999)
+    
+    # Extract R2 and p-value
+    res <- data.frame(
+      comparison = paste(g1, "vs", g2),
+      R2 = ad$R2[1],
+      p_value = ad$`Pr(>F)`[1]
+    )
+    results <- rbind(results, res)
+  }
+  
+  # Adjust p-values for multiple comparisons (FDR)
+  results$p_adj <- p.adjust(results$p_value, method = "fdr")
+  return(results)
 }
 
+# Run the test
+cat("\n=== Pairwise adonis2 Results (3 Clusters) ===\n")
+pairwise_results <- run_pairwise_adonis(dist_filtered, cluster_data$test_group)
 
-df_type_no_change <- df_types
-sites_df <- df_types$site
-df_types <- as.data.frame(df_types)
-df_types <- as.data.frame(df_types[, -1])
-rownames(df_types) <- sites_df
-names(df_types)[1] <- "type"
-fac_df <-factor(df_types$type)
-cols_df <- c("red", "blue", "orange", "green", "violet", "gray", "cyan")
+print(pairwise_results)
 
-# Plot ordination
-# set seed
-set.seed(42)
+# ── Interpretation ────────────────────────────────────────────────────────────
+# If p_adj < 0.05, the two clusters are significantly distinct.
+# R2 tells you the effect size (e.g., 0.40 = 40% of variation is due to group).
 
-# ordination
-NMDS_df <- metaMDS(log_df, distance = "bray", k=2, trymax = 200, autotransform =TRUE, noshare = 0.1, expand = TRUE, trace = 1, plot = FALSE)
-NMDS_df
+# ── 5. Check Dispersion (Spread) ────────────────────────────────────────────
+# If dispersion is significant, differences might be due to variance, not just mean.
+disp_clusters <- betadisper(dist_filtered, cluster_data$test_group)
+print("=== Beta-Dispersion Test for 3 Clusters ===")
+print(anova(disp_clusters))
 
-# the stress value is printed here
-# noshare means if there are fewer then this proportion of shared organisms, a stepacross (lowest possible similarity value) is prescribed
-# k is the value of dimensions you want the data to be constrained to for a reported stress value
-# we must reach convergence
+# ──────────────────────────────────────────────────────────────────────────────
+# TEST 2: Pre-Response Check (Day 7 ONLY)
+# ──────────────────────────────────────────────────────────────────────────────
 
-# pdf(file = paste(figDir, "SX_NMDS_stress_df.pdf", sep=''), width = 12, height = 9);
-# stress_df <- stressplot(NMDS_df)
-# plot(stress_df)
-# dev.off()
-# dev.off()
-# stress plot is just a relationship between ordination distance and dissimilarity
-# goodness of fit values here, how well the visual representation of the data matches the dissimilarity matrix
-# for stress < 0.1 good; 0.1<x<0.2 questionable; >0.2 bad
+# 1. Prepare Subset
+target_7_only <- which(sample_info$day_num == 7)
+dist_7_only   <- vegdist(log_df[target_7_only, ], method = "bray")
+meta_7_only   <- sample_info[target_7_only, ]
 
-## plot ordination ##
+# 2. Run PERMANOVA 
+# FIX: Remove 'day_num' from formula since it is now a constant (all samples = 7)
+perm_7_only <- adonis2(dist_7_only ~ treatment, 
+                       data = meta_7_only, 
+                       permutations = 999)
 
-# wrangle metadata
-days <- sapply(strsplit(rownames(log_df), "day"), function(x) x[2])
-days <- sapply(strsplit(days, '\\.'), function(x) x[1])
-treatments <- sapply(strsplit(rownames(log_df), "_"), function(x) x[1])
+print("=== PERMANOVA Results (Day 7 Only) ===")
+print(perm_7_only)
 
-df_types2 = as.data.frame(cbind(days, treatments))
-colnames(df_types2) <- c('day', 'treatment')
-rownames(df_types2) <- rownames(log_df)
+# 3. Beta-Dispersion 
+disp_7_only <- betadisper(dist_7_only, meta_7_only$treatment)
+print("=== Beta-Dispersion (Day 7 Only) ===")
+print(anova(disp_7_only))
 
-#load the type data
-fac_df <-factor(df_types2$treatment)
-pch_fac_df <- factor(df_types2$day, levels=c('0', '7', '14', '21', '35'))
+# cols_df and pch_df from your original code
+cols_df <- c("#FC9B2D", "#7ACBC3")
+names(cols_df) <- c("C", "U")
 pch_df <- c(4, 15, 17, 18, 19)
-cols_df <- c("#FC9B2D", "#7ACBC3") # C U
+names(pch_df) <- c("0", "7", "14", "21", "35")
 
-## With stat_ellipse for each affinity propagation cluster ##
+# ── 1. Calculate PCA ─────────────────────────────────────────────────────────
 
-# Ensure NMDS results are in a data frame
-NMDS_points <- as.data.frame(scores(NMDS_df, display = "sites"))
+# Perform PCA on the Hellinger-transformed data
+# we use scale = FALSE because Hellinger transformation already handles scaling
+pca_res <- prcomp(log_df, center = FALSE, scale. = FALSE)
 
-# Add metadata (matching by row names)
-NMDS_points$treatment <- df_types2$treatment
-NMDS_points$day <- df_types2$day
-matched_clusters <- df_types[match(rownames(NMDS_points), rownames(df_types)), ]
-NMDS_points$cluster <- matched_clusters  # Add clusters from df_types
+# Extract coordinates for plotting
+PCA_points <- as.data.frame(pca_res$x)
+PCA_points$row_names <- rownames(PCA_points)
 
-# Define shape and color mappings
-pch_df <- c(4, 15, 17, 18, 19)
-names(pch_df) <- c('0', '7', '14', '21', '35')
+# Calculate Percentage of Variance for Axis Labels
+var_explained <- pca_res$sdev^2 / sum(pca_res$sdev^2) * 100
+pc1_label <- paste0("PC1 (", round(var_explained[1], 1), "%)")
+pc2_label <- paste0("PC2 (", round(var_explained[2], 1), "%)")
 
-cols_df <- c("#FC9B2D", "#7ACBC3") # Catechin, Control, Unamended
-names(cols_df) <- levels(factor(df_types2$treatment))
+# ── 2. Merge Metadata for Plotting ──────────────────────────────────────────
 
-# Compute convex hulls
-hull_data <- NMDS_points %>%
-  group_by(cluster) %>%
-  slice(chull(NMDS1, NMDS2))
+# Join with the sample_info created earlier to get treatment and day
+PCA_points <- PCA_points %>%
+  mutate(
+    treatment = sub("_.*", "", row_names),
+    day = as.character(regmatches(row_names, regexpr("\\d+", row_names))),
+    # Define the same formal clusters used in your previous logic for ellipses
+    formal_cluster = case_when(
+      day == "7" ~ "Cluster 1 (Day 7)",
+      treatment == "C" & day %in% c("14", "21", "35") ~ "Cluster 2 (C response)",
+      treatment == "U" & day %in% c("14", "21", "35") ~ "Cluster 3 (U response)",
+      TRUE ~ NA_character_
+    )
+  )
 
-# Run PCA
-PCA_df <- prcomp(log_df, center = FALSE, scale. = FALSE)
-PCA_scores <- as.data.frame(PCA_df$x[, 1:2])  # Get first 2 components
-colnames(PCA_scores) <- c("PC1", "PC2")
-explained_var <- summary(PCA_df)$importance[2, ] * 100
-x_label <- paste0("PC1 (", round(explained_var[1], 1), "%)")
-y_label <- paste0("PC2 (", round(explained_var[2], 1), "%)")
+# ── 3. Final Plotting (Aesthetic Match) ──────────────────────────────────────
 
-# Combine with metadata (assuming you have a metadata dataframe called metadata_df)
-PCA_points <- cbind(PCA_scores, df_types2)  # metadata_df must have 'treatment', 'day', and 'cluster'
+cols_df <- c("C" = "#FC9B2D", "U" = "#7ACBC3") 
+pch_df  <- c('0'=19, '7'=7, '14'=17, '21'=15, '35'=3)
 
-# Calculate convex hulls for each cluster
-matched_clusters_PCA <- df_types[match(rownames(PCA_points), rownames(df_types)), ]
-PCA_points$cluster <- matched_clusters_PCA  # Add clusters from df_types
+pdf(file = paste0(figDir, "S4-B_MAG_beta_diversity.pdf"), width = 8, height = 8)
 
-hull_data <- PCA_points %>%
-  group_by(cluster) %>%
-  slice(chull(PC1, PC2))
-
-pdf(file = paste0(figDir, "S3-B_PCA_treatment_day_polygon_daylabel_MAG.pdf"), width = 12, height = 12)
-ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment, shape = factor(day))) +
-  geom_polygon(data = hull_data, aes(x = PC1, y = PC2, group = cluster),
-               fill = NA, color = "black", linetype = "solid", linewidth = 1) +  # Add hulls
-  geom_point(size = 15, stroke = 2, alpha = 0.9) +  # Increase stroke for hollow shapes
-  scale_color_manual(values = cols_df) +
+ggplot(PCA_points, aes(x = PC1, y = PC2)) +
+  # 95% CI Ellipses
+  stat_ellipse(data = subset(PCA_points, !is.na(formal_cluster)),
+               aes(group = formal_cluster, linetype = formal_cluster),
+               color = "black", 
+               level = 0.95, 
+               linewidth = 0.8) +
+  
+  # Points: Size 10 and Stroke 1.5 match your requested style
+  geom_point(aes(color = treatment, shape = factor(day)), 
+             size = 10, stroke = 1.5, alpha = 0.8) +
+  
+  # Scaling
+  scale_color_manual(values = cols_df, guide = "none") +
+  scale_shape_manual(values = pch_df, guide = "none") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted"), guide = "none") +
+  
+  # Labels and Force Square Aspect Ratio
+  labs(x = pc1_label, y = pc2_label) +
+  coord_fixed(ratio = 1) + 
+  
   theme_minimal() +
-  theme(axis.text = element_text(size = 30),
-        axis.title = element_text(size = 30),
-        legend.position = "none",  # Remove all legends
-        panel.grid = element_blank(),  # Remove gridlines
-        axis.line = element_line(color = "black", linewidth = 0.5)) +  # Add axis lines
-  labs(x = x_label,
-       y = y_label,
-       title = "")
+  theme(
+    aspect.ratio = 1, 
+    axis.text    = element_text(size = 20),
+    axis.title   = element_text(size = 22),
+    legend.position = "none", 
+    panel.grid   = element_blank(),
+    axis.line    = element_line(color = "black")
+  )
 
-dev.off()
-
-
-p_legend <- ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment, shape = factor(day))) +
-  geom_point(size = 8, stroke = 2, alpha = 0.9) +
-  scale_color_manual(values = cols_df) +
-  labs(color = "Treatment", shape = "Day") +
-  theme_minimal() +
-  theme(legend.text = element_text(size = 24),
-        legend.title = element_text(size = 26),
-        legend.key.size = unit(2, "lines"))
-
-legend <- get_legend(p_legend)
-
-pdf(file = paste0(figDir, "legend_treatment_day.pdf"), width = 4, height = 6)
-grid::grid.draw(legend)
 dev.off()
