@@ -60,18 +60,6 @@ vOTU_df = vOTU_df.merge(genomad_annotations, on=['vOTU', 'gene_position'], how='
 # fill NAs with ''
 vOTU_df = vOTU_df.fillna('')
 
-# get 100 random vOTUs
-import random
-
-random.seed(42)
-
-manual_vOTU_check_list = random.sample(vOTUs, 100)
-manual_vOTU_check_df = vOTU_df.loc[vOTU_df['vOTU'].isin(manual_vOTU_check_list)]
-manual_vOTU_check_df.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/vOTU_manual_check_100.tsv', sep='\t', index=False)
-
-# six vOTUs from manual inspection were marked as "not viral". 
-# We will use these to construct rules for not viral sequences.
-
 # use concatenated annotations for filtering
 
 vOTU_df['concat_annotations'] = (
@@ -85,32 +73,6 @@ vOTU_df['concat_annotations'] = (
 vOTU_agg = vOTU_df.groupby('vOTU').agg({'concat_annotations': ';'.join}).reset_index()
 vOTU_agg = vOTU_agg.merge(vOTU_checkv_df, on='vOTU', how='left')
 
-# clean up with new rules
-not_viral_list = []
-
-def manual_filter(vOTU):
-
-
-    # 1. checkv contamination >80%
-    if float(vOTU['contamination']) > 80:
-        not_viral_list.append(vOTU['vOTU'])
-
-    # 2. transposase detected, but no checkv viral genes detected
-    if 'transposase' in vOTU['concat_annotations'] and int(vOTU['viral_genes']) == 0:
-        if vOTU['vOTU'] not in not_viral_list:  # Check by vOTU ID, not the whole dictionary
-            not_viral_list.append(vOTU['vOTU'])
-
-    # 3. no checkv viral genes and host genes >30% of genes
-    if (str(vOTU['warnings']) == 'no viral genes detected') and (int(vOTU['host_genes']) / int(vOTU['gene_count']) > 0.3):
-        if vOTU['vOTU'] not in not_viral_list:
-            not_viral_list.append(vOTU['vOTU'])
-
-vOTU_agg.apply(manual_filter, axis=1)
-
-print('number of vOTUs marked as not viral by manual filter: ' + str(len(not_viral_list)))
-
-# extract not viral vOTUs for manual inspection double-check
-not_viral_vOTUs = vOTU_df.loc[vOTU_df['vOTU'].isin(not_viral_list)]
 cols_to_keep = [
     "vOTU", "topology", "virus_score", "fdr", "n_hallmarks", "contig_length", 
     "provirus", "gene_count", "viral_genes", "host_genes", "checkv_quality", 
@@ -120,11 +82,7 @@ cols_to_keep = [
     "amg_flags"
 ]
 
-not_viral_vOTUs[cols_to_keep].to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/not_viral_vOTUs_manual_check.tsv', sep='\t', index=False)
-
-# filter and export final vOTU set and metadata
-
-vOTUs_filtered = vOTU_df.loc[~vOTU_df['vOTU'].isin(not_viral_list)]
+vOTUs_filtered = vOTU_df # Changed so we are NOT doing a manual filter anymore.
 vOTUs_filtered.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/vOTUs_filtered_metadata.tsv', sep='\t', index=False)
 
 from Bio import SeqIO
