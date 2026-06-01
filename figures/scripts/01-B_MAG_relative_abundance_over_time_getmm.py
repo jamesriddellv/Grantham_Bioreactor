@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # Generates Figure 1B and alternate 
+# # Generates Figure 1B and alternate versions of the plot (scaled by total GeTMM instead of proportion of total)
 
-# In[ ]:
+# In[1]:
 
 
 import pandas as pd
@@ -11,11 +11,12 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from matplotlib.patches import Patch
 from print_versions import print_versions
 print_versions(globals())
 
 
-# In[ ]:
+# In[2]:
 
 
 # set fonts and ensure PDF text is editable:
@@ -397,7 +398,7 @@ plt.show()
 ## Create a separate figure just for the legend
 fig_legend = plt.figure(figsize=(8, 6))
 # Create proxy artists (patches) for the legend
-from matplotlib.patches import Patch
+
 legend_elements = [Patch(facecolor=mag_color_dict.get(col, 'gray'), 
                         label=col, alpha=0.7) 
                   for col in df_pivot.columns]
@@ -415,7 +416,7 @@ legend = fig_legend.legend(handles=legend_elements,
 fig_legend.gca().set_axis_off()
 # Save the legend
 plt.savefig(
-    f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/MAG_legend_only_simplified.pdf",
+    f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/01-B_MAG_legend_only_simplified.pdf",
     dpi=300,
     bbox_inches='tight'
 )
@@ -512,6 +513,30 @@ plt.savefig(
     dpi=300
 )
 plt.show()
+
+
+# In[39]:
+
+
+by_tax_rank_melted
+
+
+# In[42]:
+
+
+by_tax_rank_melted.loc[
+(by_tax_rank_melted['day'] > 0)
+& (by_tax_rank_melted['highest_host_tax_rank'] == 'g__JAEXAI01')
+]
+
+
+# In[43]:
+
+
+by_tax_rank_melted.loc[
+(by_tax_rank_melted['day'] > 0)
+& (by_tax_rank_melted['highest_host_tax_rank'] == 'g__JAATFL01')
+]
 
 
 # In[35]:

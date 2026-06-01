@@ -3,7 +3,7 @@
 
 # # This notebook generates version of Figure 2C with different cutoffs for viral activity, and serves as the sensitivity analysis presented in Fig. S2
 
-# In[1]:
+# In[14]:
 
 
 import pandas as pd
@@ -21,7 +21,7 @@ from print_versions import print_versions
 print_versions(globals())
 
 
-# In[6]:
+# In[15]:
 
 
 def plot_relative_abundance_over_time_getmm(infile, outfile_base):
@@ -241,7 +241,7 @@ def plot_relative_abundance_over_time_getmm(infile, outfile_base):
     plt.grid(True, alpha=0.5)
     plt.tight_layout()
     plt.savefig(
-        f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3-C_vOTU_stacked_area_prop_{treatment_to_plot}_{outfile_base}.pdf",
+        f"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2-C_vOTU_stacked_area_prop_{treatment_to_plot}_{outfile_base}.pdf",
         dpi=300
     )
     plt.show()
@@ -289,7 +289,7 @@ def plot_relative_abundance_over_time_getmm(infile, outfile_base):
     plt.show()
 
 
-# In[7]:
+# In[16]:
 
 
 df_1_read_mapped = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs_wide.tsv', sep='\t')
@@ -298,7 +298,7 @@ df_prop10 = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-re
 df_5_reads_mapped = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_5x_vOTUs_corrected_wide.tsv', sep='\t')
 
 
-# In[8]:
+# In[17]:
 
 
 plot_relative_abundance_over_time_getmm('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs_wide.tsv', '1_read_mapped')
@@ -308,7 +308,7 @@ plot_relative_abundance_over_time_getmm('/fs/ess/PAS1117/riddell26/Grantham_Bior
 
 
 
-# In[10]:
+# In[18]:
 
 
 df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_1x_vOTUs_wide.tsv', sep='\t')
@@ -531,14 +531,8 @@ plt.savefig(
 plt.show()
 
 
-# In[12]:
+# In[19]:
 
 
-get_ipython().system('jupyter nbconvert --to script 002S2C-vOTU-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S3-C_vOTU_relative_abundance_over_time_getmm')
-
-
-# In[ ]:
-
-
-
+get_ipython().system('jupyter nbconvert --to script 002S2C-vOTU-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S2-C_vOTU_relative_abundance_over_time_getmm')
 

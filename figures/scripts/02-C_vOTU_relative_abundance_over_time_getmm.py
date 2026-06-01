@@ -3,7 +3,7 @@
 
 # # This notebook produces Figs 2B (vOTU GeTMM relative abundance), S1C (vOTU accumulation/collectors curve based on GeTMM)
 
-# In[ ]:
+# In[1]:
 
 
 import pandas as pd
@@ -250,6 +250,18 @@ plt.show()
 iphop_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/data/active_vOTUs_active_MAGs_for_cytoscape.tsv', sep='\t')
 iphop_df = iphop_df.sort_values(by=['vOTU', 'Confidence score']).drop_duplicates('vOTU')
 iphop_df.head()
+
+
+# In[15]:
+
+
+iphop_df['Main method'].value_counts()
+
+
+# In[16]:
+
+
+249/(249+124+1)
 
 
 # In[10]:
@@ -672,15 +684,15 @@ mag_color_dict = {
     # g__UBA1794 group (pink shades)
     'g__UBA1794': '#FF69B4',                        # Original hot pink
     
-    # no_assignment group (gray shades) - maintaining existing colors
-    'no_assignment__contig_1022629': '#C0C0C0',     # Silver (from original)
-    'no_assignment__contig_1093732': '#D3D3D3',     # Light gray (from original)
-    'no_assignment__contig_709158': '#696969',      # Dim gray (from original)
-    'no_assignment__contig_713418': '#778899',      # Light slate gray (from original)
-    'no_assignment__contig_773239': '#708090',      # Slate gray (from original)
-    'no_assignment__contig_776767': '#556B2F',      # Dark olive green (from original)
-    'no_assignment__contig_861080': '#2F4F4F',      # Dark slate gray (from original)
-    'no_assignment': '#808080',                     # Medium gray
+    # no_assignment group (light shades)
+    'no_assignment__contig_1022629': '#C68B7B',    
+    'no_assignment__contig_1093732': '#E2A693',     
+    'no_assignment__contig_709158': '#EDBFB2',     
+    'no_assignment__contig_713418': '#778899',      
+    'no_assignment__contig_773239': '#A7D8A8',      
+    'no_assignment__contig_776767': '#E5DC89',      
+    'no_assignment__contig_861080': '#A095B7',      
+    'no_assignment': '#808080',                   
 }
 
 
@@ -796,7 +808,7 @@ plt.savefig(
 plt.show()
 
 
-# In[52]:
+# In[50]:
 
 
 non_contig_taxa = [
@@ -820,7 +832,7 @@ vOTU_counts = df['highest_host_tax_rank_appended'].apply(assign_legend_group).va
 vOTU_counts
 
 
-# In[54]:
+# In[51]:
 
 
 from matplotlib.patches import Patch
@@ -874,25 +886,25 @@ plt.savefig(
 plt.show()
 
 
-# In[51]:
+# In[52]:
 
 
 df.loc[df['highest_host_tax_rank'] == 'g__JAGFXR01']
 
 
-# In[52]:
+# In[53]:
 
 
 102652.241407 / 750.845462
 
 
-# In[53]:
+# In[54]:
 
 
 by_tax_rank_melted_grouped
 
 
-# In[54]:
+# In[55]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -937,7 +949,7 @@ plt.savefig(
 plt.show()
 
 
-# In[55]:
+# In[56]:
 
 
 # Choose a treatment to plot (e.g., 'unamended' or 'catechin')
@@ -983,6 +995,167 @@ plt.savefig(
 plt.show()
 
 
+# In[78]:
+
+
+# Configuration
+target_days = [14, 21, 35]
+target_taxon = 'g__JAGFXR01__contig_591846'
+results = {}
+
+for day in target_days:
+    # Filter the dataframe for the specific day once to save processing time
+    df_day = df_treatment[df_treatment['day'] == day]
+    
+    # Calculate numerator: Sum for the specific taxon on this day
+    taxon_sum = df_day.loc[
+        df_day['taxon_grouped'] == target_taxon, 
+        'taxon_grouped_prop_abundance'
+    ].sum()
+    
+    # Calculate denominator: Total sum for all taxa on this day
+    total_day_sum = df_day['taxon_grouped_prop_abundance'].sum()
+    
+    # Calculate ratio and store (with a check to avoid division by zero)
+    results[day] = taxon_sum / total_day_sum if total_day_sum > 0 else 0
+
+# Display results
+for day, ratio in results.items():
+    print(f"Day {day} ratio: {ratio:.4f}")
+
+
+# In[79]:
+
+
+# JAGFXR01 predictions only.
+target_days = [14, 21, 35]
+target_taxon = 'g__JAGFXR01__contig_591846'
+results = {}
+
+for day in target_days:
+    # Filter the dataframe for the specific day once to save processing time
+    df_day = df_treatment[df_treatment['day'] == day]
+    
+    # Calculate numerator: Sum for the specific taxon on this day
+    taxon_sum = df_day.loc[
+        df_day['taxon_grouped'] == target_taxon, 
+        'taxon_grouped_prop_abundance'
+    ].sum()
+    
+    # Calculate denominator: Total sum for all taxa on this day
+    total_day_sum = df_day.loc[
+        df_day['taxon_grouped'].str.contains('JAGFXR01') | df_day['taxon_grouped'].str.contains('contig_861080')
+    ]['taxon_grouped_prop_abundance'].sum()
+    
+    # Calculate ratio and store (with a check to avoid division by zero)
+    results[day] = taxon_sum / total_day_sum if total_day_sum > 0 else 0
+
+# Display results
+for day, ratio in results.items():
+    print(f"Day {day} ratio: {ratio:.4f}")
+
+
+# In[81]:
+
+
+# contig_861080 proportions
+target_days = [14, 21, 35]
+target_taxon = 'contig_861080'
+results = {}
+
+for day in target_days:
+    # Filter the dataframe for the specific day once to save processing time
+    df_day = df_treatment[df_treatment['day'] == day]
+    
+    # Calculate numerator: Sum for the specific taxon on this day
+    taxon_sum = df_day.loc[
+        df_day['taxon_grouped'].str.contains(target_taxon), 
+        'taxon_grouped_prop_abundance'
+    ].sum()
+    
+    # Calculate denominator: Total sum for all taxa on this day
+    total_day_sum = df_day.loc[
+        df_day['taxon_grouped'].str.contains('JAGFXR01') | df_day['taxon_grouped'].str.contains('contig_861080')
+    ]['taxon_grouped_prop_abundance'].sum()
+    
+    # Calculate ratio and store (with a check to avoid division by zero)
+    results[day] = taxon_sum / total_day_sum if total_day_sum > 0 else 0
+
+# Display results
+for day, ratio in results.items():
+    print(f"Day {day} ratio: {ratio:.4f}")
+
+
+# In[75]:
+
+
+df_treatment
+
+
+# # What proportion of all activity is by vOTUs with a host prediction?
+
+# In[88]:
+
+
+no_assignment_prop = sum(by_tax_rank_melted_grouped.loc[by_tax_rank_melted_grouped['taxon_grouped'].str.contains('no_assignment')]['taxon_grouped_prop_abundance'])
+all_prop = sum(by_tax_rank_melted_grouped['taxon_grouped_prop_abundance'])
+no_assignment_prop / all_prop
+
+
+# In[94]:
+
+
+import pandas as pd
+
+# Define targets
+target_taxon = 'no_assignment'
+
+# 2. Group by day and treatment to get a ratio for every individual sample/group
+# Numerator: sum of 'no_assignment'
+# Denominator: total sum of all taxa (all_prop)
+grouped_ratios = by_tax_rank_melted_grouped.groupby(['day', 'treatment']).apply(lambda x: 
+    x.loc[~x['taxon_grouped'].str.contains(target_taxon), 'taxon_grouped_prop_abundance'].sum() / 
+    x['taxon_grouped_prop_abundance'].sum()
+)
+
+# 3. Calculate the mean and standard deviation across all grouped results
+mean_val = grouped_ratios.mean()
+std_val = grouped_ratios.std()
+
+print(f"Mean 'assigned' proportion across all days/treatments: {mean_val:.4f}")
+print(f"Standard Deviation: {std_val:.4f}")
+
+# Optional: See the breakdown per day
+# print(grouped_ratios.groupby('day').mean())
+
+
+# In[93]:
+
+
+import pandas as pd
+
+# Define targets
+target_taxon = 'no_assignment'
+
+# 2. Group by day and treatment to get a ratio for every individual sample/group
+# Numerator: sum of 'no_assignment'
+# Denominator: total sum of all taxa (all_prop)
+grouped_ratios = by_tax_rank_melted_grouped.groupby(['day', 'treatment']).apply(lambda x: 
+    x.loc[~(x['taxon_grouped'] == target_taxon), 'taxon_grouped_prop_abundance'].sum() / 
+    x['taxon_grouped_prop_abundance'].sum()
+)
+
+# 3. Calculate the mean and standard deviation across all grouped results
+mean_val = grouped_ratios.mean()
+std_val = grouped_ratios.std()
+
+print(f"Mean 'assigned' proportion across all days/treatments: {mean_val:.4f}")
+print(f"Standard Deviation: {std_val:.4f}")
+
+# Optional: See the breakdown per day
+# print(grouped_ratios.groupby('day').mean())
+
+
 # # What proportion of JAGFXR01 is contig_591846 activity?
 
 # In[57]:
@@ -991,35 +1164,41 @@ plt.show()
 jag_df = by_tax_rank_melted_grouped[by_tax_rank_melted_grouped['treatment'] == 'catechin']
 
 
-# In[59]:
+# In[58]:
 
 
 jag_df = jag_df.loc[jag_df['taxon_grouped'].str.contains('JAGFXR01')]
 jag_df
 
 
-# In[63]:
+# In[59]:
 
 
 jag_df = jag_df.merge(jag_df.groupby(['treatment', 'day']).agg({'taxon_grouped_abundance': 'sum'}).reset_index(), on=['treatment','day'], suffixes=['', '_total'])
              
 
 
-# In[66]:
+# In[60]:
 
 
 jag_df['prop_total'] = jag_df['taxon_grouped_abundance'] / jag_df['taxon_grouped_abundance_total']
 jag_df
 
 
-# In[69]:
+# In[61]:
 
 
 jag_df.loc[jag_df['taxon_grouped'] == 'g__JAGFXR01__contig_591846']['prop_total'].mean()
 
 
-# In[ ]:
+# In[62]:
 
 
 get_ipython().system('jupyter nbconvert --to script 004-vOTU-relative-abundance-over-time-getmm.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/02-C_vOTU_relative_abundance_over_time_getmm')
+
+
+# In[ ]:
+
+
+
 

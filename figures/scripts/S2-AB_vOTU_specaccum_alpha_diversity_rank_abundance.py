@@ -164,39 +164,22 @@ def create_four_panel_species_accumulation(df_1_gene_mapped_per_10kb, df_prop10,
                                           treatment_cols_dict, permutations_count=100, 
                                           save_path=None):
     """
-    Create four separate species accumulation plots in a column layout.
-    
-    Parameters:
-    -----------
-    df_1_gene_mapped_per_10kb : pd.DataFrame
-        DataFrame with ≥1 gene mapped per 10kb
-    df_prop10 : pd.DataFrame
-        DataFrame with >10% of contig covered
-    df_1_read_mapped : pd.DataFrame
-        DataFrame with ≥1 read mapped
-    df_5_reads_mapped : pd.DataFrame
-        DataFrame with ≥5 reads mapped to structural phage gene
-    treatment_cols_dict : dict
-        Dictionary mapping treatment names to column lists
-    permutations_count : int
-        Number of permutations for accumulation curves
-    save_path : str, optional
-        Base path for saving figures (without extension)
+    Create four separate species accumulation plots in a column layout, ordered by stringency.
     """
     # Create figure with four subplots in a column
     fig, axes = plt.subplots(4, 1, figsize=(6, 20))
     
-    # Define dataset names and corresponding DataFrames
+    # RE-ORDERED DATASETS LIST
     datasets = [
-        ('≥1 gene with ≥1 read mapped per 10kb', df_1_gene_mapped_per_10kb),
-        ('>10% of contig covered', df_prop10),
-        ('≥1 gene mapped', df_1_read_mapped),
-        ('≥5 reads mapped to structural phage gene \n& ≥10% horizontal coverage', df_5_reads_mapped)
+        ('≥1 read mapped', df_1_read_mapped),                                     # 1st: 1_read_mapped
+        ('≥1 gene with ≥1 read mapped per 10kb', df_1_gene_mapped_per_10kb),      # 2nd: 1 gene with 1 read
+        ('>10% of contig covered', df_prop10),                                    # 3rd: >10% coverage
+        ('≥5 reads mapped to structural phage gene \n& ≥10% horizontal coverage', df_5_reads_mapped) # 4th: >5 reads
     ]
     
     all_treatment_curves = {}
     
-    # Plot each dataset in a separate subplot
+    # Plot each dataset in the new order
     for i, (title, df) in enumerate(datasets):
         print(f"Processing {title}...")
         
@@ -254,7 +237,7 @@ all_curves = create_four_panel_species_accumulation(
     df_5_reads_mapped=df_5_reads_mapped,
     treatment_cols_dict=treatment_cols_dict,
     permutations_count=100,
-    save_path="/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S1X_specaccum_active_by_treatment_four_panel"
+    save_path="/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S1-A_specaccum_active_by_treatment_four_panel"
 )
 
 
@@ -263,19 +246,26 @@ all_curves = create_four_panel_species_accumulation(
 # In[4]:
 
 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from skbio.diversity.alpha import hill
+
 def plot_diversity_stats(df, outfile, figfile):
 
     # keep only the catechin and unamended columns
     active_df = df[["vOTU",
-                              "STM_0716_E_M_E002", "STM_0716_E_M_E003", "STM_0716_E_M_E004",
-                              "STM_0716_E_M_E025", "STM_0716_E_M_E027", "STM_0716_E_M_E033",
-                              "STM_0716_E_M_E034", "STM_0716_E_M_E035", "STM_0716_E_M_E050",
-                              "STM_0716_E_M_E051", "STM_0716_E_M_E052", "STM_0716_E_M_E058",
-                              "STM_0716_E_M_E059", "STM_0716_E_M_E060", "STM_0716_E_M_E062",
-                              "STM_0716_E_M_E063", "STM_0716_E_M_E064", "STM_0716_E_M_E070",
-                              "STM_0716_E_M_E071", "STM_0716_E_M_E072", "STM_0716_E_M_E121",
-                              "STM_0716_E_M_E122", "STM_0716_E_M_E123", "STM_0716_E_M_E129",
-                              "STM_0716_E_M_E130", "STM_0716_E_M_E131"]]
+                    "STM_0716_E_M_E002", "STM_0716_E_M_E003", "STM_0716_E_M_E004",
+                    "STM_0716_E_M_E025", "STM_0716_E_M_E027", "STM_0716_E_M_E033",
+                    "STM_0716_E_M_E034", "STM_0716_E_M_E035", "STM_0716_E_M_E050",
+                    "STM_0716_E_M_E051", "STM_0716_E_M_E052", "STM_0716_E_M_E058",
+                    "STM_0716_E_M_E059", "STM_0716_E_M_E060", "STM_0716_E_M_E062",
+                    "STM_0716_E_M_E063", "STM_0716_E_M_E064", "STM_0716_E_M_E070",
+                    "STM_0716_E_M_E071", "STM_0716_E_M_E072", "STM_0716_E_M_E121",
+                    "STM_0716_E_M_E122", "STM_0716_E_M_E123", "STM_0716_E_M_E129",
+                    "STM_0716_E_M_E130", "STM_0716_E_M_E131"]]
 
     active_df = active_df.sort_values(by='vOTU')
     
@@ -293,35 +283,38 @@ def plot_diversity_stats(df, outfile, figfile):
     # Read metadata
     metadata = pd.read_csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/data/metaT_sample_metadata.csv")
     
-    # Simplify treatment labels
+    # 1. ALIGNMENT STEP: Ensure metadata matches the EXACT order of active_df columns
+    # Get the list of sample IDs currently in active_df
+    sample_order = list(active_df.columns) 
+    
+    # Set Sample as index, reorder to match the dataframe, then reset index
+    metadata = metadata.set_index('Sample').reindex(sample_order).reset_index()
+
+    # 2. NOW simplify labels and calculate diversity
     metadata['treatment'] = metadata['treatment'].replace({'unamended': 'U', 'CT': 'T', 'catechin': 'C'})
-    metadata = metadata.loc[metadata['treatment'] != 'T']
+    # Note: Ensure you don't drop 'T' samples if they are still in active_df, 
+    # or drop them from BOTH active_df and metadata here.
     
-    # Create treatment_timepoint column
+    # Transpose and calculate diversity while names still match
+    data_mtx = active_df.T.apply(pd.to_numeric, errors='coerce')
+    metadata['hill_q1'] = data_mtx.apply(lambda x: hill(x, order=1), axis=1).values
+
+    # 3. RENAME columns for plotting uniqueness AFTER diversity calculation
     treatment_timepoint = metadata['treatment'] + "_" + metadata['timepoint'].astype(str)
-    active_df.columns = treatment_timepoint.values
     
-    # Make unique column names
     def make_unique(columns):
         seen = {}
         new_cols = []
         for col in columns:
-            if col not in seen:
-                seen[col] = 0
-                new_cols.append(col)
-            else:
-                seen[col] += 1
-                new_cols.append(f"{col}.{seen[col]}")
+            seen[col] = seen.get(col, -1) + 1
+            new_cols.append(col if seen[col] == 0 else f"{col}.{seen[col]}")
         return new_cols
     
-    active_df.columns = make_unique(active_df.columns)
+    # Rename active_df columns only for your downstream mapping logic if needed
+    active_df.columns = make_unique(treatment_timepoint.values)
     
-    # Transpose and convert to numeric matrix
-    data_mtx = active_df.T
-    data_mtx = data_mtx.apply(pd.to_numeric, errors='coerce')
-
+    # Convert timepoint to int for plotting
     metadata['timepoint'] = metadata['timepoint'].apply(lambda x: int(x.split('day')[1]))
-    metadata['shannon_diversity'] = data_mtx.apply(shannon, axis=1).values
 
     # prop reads mapping to vOTUs
 
@@ -339,44 +332,16 @@ def plot_diversity_stats(df, outfile, figfile):
     # Assign column names
     counts.columns = [
         "gene",
-        "STM_0716_E_M_E002",
-        "STM_0716_E_M_E003",
-        "STM_0716_E_M_E004",
-        "STM_0716_E_M_E025",
-        "STM_0716_E_M_E027",
-        "STM_0716_E_M_E029",
-        "STM_0716_E_M_E030",
-        "STM_0716_E_M_E031",
-        "STM_0716_E_M_E033",
-        "STM_0716_E_M_E034",
-        "STM_0716_E_M_E035",
-        "STM_0716_E_M_E050",
-        "STM_0716_E_M_E051",
-        "STM_0716_E_M_E052",
-        "STM_0716_E_M_E054",
-        "STM_0716_E_M_E055",
-        "STM_0716_E_M_E056",
-        "STM_0716_E_M_E058",
-        "STM_0716_E_M_E059",
-        "STM_0716_E_M_E060",
-        "STM_0716_E_M_E062",
-        "STM_0716_E_M_E063",
-        "STM_0716_E_M_E064",
-        "STM_0716_E_M_E066",
-        "STM_0716_E_M_E067",
-        "STM_0716_E_M_E068",
-        "STM_0716_E_M_E070",
-        "STM_0716_E_M_E071",
-        "STM_0716_E_M_E072",
-        "STM_0716_E_M_E121",
-        "STM_0716_E_M_E122",
-        "STM_0716_E_M_E123",
-        "STM_0716_E_M_E125",
-        "STM_0716_E_M_E126",
-        "STM_0716_E_M_E127",
-        "STM_0716_E_M_E129",
-        "STM_0716_E_M_E130",
-        "STM_0716_E_M_E131"
+        "STM_0716_E_M_E002", "STM_0716_E_M_E003", "STM_0716_E_M_E004", "STM_0716_E_M_E025",
+        "STM_0716_E_M_E027", "STM_0716_E_M_E029", "STM_0716_E_M_E030", "STM_0716_E_M_E031",
+        "STM_0716_E_M_E033", "STM_0716_E_M_E034", "STM_0716_E_M_E035", "STM_0716_E_M_E050",
+        "STM_0716_E_M_E051", "STM_0716_E_M_E052", "STM_0716_E_M_E054", "STM_0716_E_M_E055",
+        "STM_0716_E_M_E056", "STM_0716_E_M_E058", "STM_0716_E_M_E059", "STM_0716_E_M_E060",
+        "STM_0716_E_M_E062", "STM_0716_E_M_E063", "STM_0716_E_M_E064", "STM_0716_E_M_E066",
+        "STM_0716_E_M_E067", "STM_0716_E_M_E068", "STM_0716_E_M_E070", "STM_0716_E_M_E071",
+        "STM_0716_E_M_E072", "STM_0716_E_M_E121", "STM_0716_E_M_E122", "STM_0716_E_M_E123",
+        "STM_0716_E_M_E125", "STM_0716_E_M_E126", "STM_0716_E_M_E127", "STM_0716_E_M_E129",
+        "STM_0716_E_M_E130", "STM_0716_E_M_E131"
     ]
     counts = counts.merge(gff_df, on='gene', how='left').dropna()
     counts_long = counts.melt(id_vars=['gene', 'vOTU'], var_name='Sample', value_name='num_reads_mapped')
@@ -392,88 +357,203 @@ def plot_diversity_stats(df, outfile, figfile):
     reads_mapped_per_sample['day'] = reads_mapped_per_sample['day'].astype(int)
     metadata = metadata.merge(reads_mapped_per_sample[['Sample', 'prop_mapped']], on='Sample', how='left')
 
-    # Base plot
-    fig, ax1 = plt.subplots(figsize=(8, 6))
-    
-    # Plot shannon_diversity on the primary y-axis
-    # sns.scatterplot(
-    #     data=metadata,
-    #     x='timepoint',
-    #     y='shannon_diversity',
-    #     hue='treatment',
-    #     palette={"C": "#FC9B2D", "U": "#7ACBC3"},
-    #     alpha=1,
-    #     ax=ax1
-    # )
-    sns.lineplot(
-        data=metadata,
-        x='timepoint',
-        y='shannon_diversity',
-        hue='treatment',
-        palette={"C": "#FC9B2D", "U": "#7ACBC3"},
-        estimator='mean',
-        errorbar='ci',
-        linewidth=4,
-        legend=False,
-        ax=ax1
+    # ── Z-Score Computations ──────────────────────────────────────────────────────
+    metadata['hill_q1_z'] = metadata.groupby('timepoint')['hill_q1'].transform(
+        lambda x: (x - x.mean()) / x.std() if x.std() > 0 else 0
     )
-    
-    ax1.set_xlabel("Day", fontsize=14)
-    ax1.set_ylabel("vOTU Shannon Index (metaT)", fontsize=14)
-    ax1.set_xticks([0, 7, 14, 21, 35])
-    ax1.tick_params(axis='both', labelsize=12)
-    ax1.grid(True, alpha=0.3)
-    
-    # Remove plot borders
-    for spine in ax1.spines.values():
-        spine.set_visible(False)
-    
-    # Create second y-axis
-    ax2 = ax1.twinx()
-    sns.lineplot(
-        data=metadata,
-        x='timepoint',
-        y='prop_mapped',
-        hue='treatment',
-        palette={"C": "#FC9B2D", "U": "#7ACBC3"},
-        estimator='mean',
-        linestyle='--',
-        errorbar='ci',
-        linewidth=4,
-        legend=False,
-        ax=ax2
+
+    metadata['prop_mapped_log'] = np.log(metadata['prop_mapped'])
+    metadata['prop_mapped_z'] = metadata.groupby('timepoint')['prop_mapped_log'].transform(
+        lambda x: (x - x.mean()) / x.std() if x.std() > 0 else 0
     )
-    ax2.set_ylabel("% of total RNA mapped to active vOTUs", fontsize=14)
-    ax2.tick_params(axis='y', labelsize=12)
-    
-    # Final adjustments
+
+    # ── Aesthetic mappings ────────────────────────────────────────────────────────
+    color_palette = {"C": "#FC9B2D", "U": "#7ACBC3"}
+    marker_map = {"0": "o", "7": "s", "14": "^", "21": "s", "35": "P"}
+
+    # ── Helper functions for Stats and Plotting ───────────────────────────────────
+    def get_groups(col):
+        cat = metadata[(metadata['timepoint'] != 0) & (metadata['treatment'] == 'C')][col].values
+        una = metadata[(metadata['timepoint'] != 0) & (metadata['treatment'] == 'U')][col].values
+        return cat, una
+
+    def welch_one_tailed(col, h1_greater, label):
+        """
+        h1_greater : 'C' or 'U'  — which group is hypothesised to be greater
+        """
+        cat, una = get_groups(col)
+
+        # Normality
+        wc, pc = stats.shapiro(cat)
+        wu, pu = stats.shapiro(una)
+        print(f"\n=== Shapiro-Wilk [{label}] ===")
+        print(f"  Catechin  W={wc:.4f} p={pc:.4f} {'✓' if pc > 0.05 else '✗'}")
+        print(f"  Unamended W={wu:.4f} p={pu:.4f} {'✓' if pu > 0.05 else '✗'}")
+
+        print(f"\n=== Descriptive Stats [{label}] ===")
+        print(f"  Catechin  n={len(cat)} mean={np.mean(cat):.4f} SD={np.std(cat, ddof=1):.4f}")
+        print(f"  Unamended n={len(una)} mean={np.mean(una):.4f} SD={np.std(una, ddof=1):.4f}")
+
+        # One-tailed Welch's
+        if h1_greater == 'U':
+            t_stat, p_two = stats.ttest_ind(una, cat, equal_var=False)
+            h1_label = "Unamended > Catechin"
+        else:
+            t_stat, p_two = stats.ttest_ind(cat, una, equal_var=False)
+            h1_label = "Catechin > Unamended"
+
+        p_one = p_two / 2 if t_stat > 0 else 1 - p_two / 2
+
+        print(f"\n=== Welch's t-test (one-tailed: {h1_label}) [{label}] ===")
+        print(f"  t = {t_stat:.4f}  p_two = {p_two:.4f}  p_one = {p_one:.4f}")
+        sig = p_one < 0.05
+        direction = h1_label if sig else f"No evidence that {h1_label}"
+        print(f"  → {'Significant' if sig else 'Not significant'}: {direction}")
+
+        return p_one
+
+    def add_stripplot(ax, plot_df, y_col):
+        for tp, m in marker_map.items():
+            subset = plot_df[plot_df['timepoint_str'] == tp]
+            if subset.empty:
+                continue
+            if tp == "7":
+                sns.stripplot(data=subset, x='treatment', y=y_col, ax=ax,
+                              marker='s', color='black', alpha=0.6, jitter=False, s=9)
+                sns.stripplot(data=subset, x='treatment', y=y_col, ax=ax,
+                              marker='x', color='white', alpha=1.0, jitter=False, s=6, linewidth=1)
+            else:
+                sns.stripplot(data=subset, x='treatment', y=y_col, ax=ax,
+                              marker=m, color='black', alpha=0.6, jitter=True, s=8, linewidth=0.5)
+
+    def get_stars(p):
+        if p < 0.001:
+            return "***"
+        elif p < 0.01:
+            return "**"
+        elif p < 0.05:
+            return "*"
+        else:
+            return "ns"
+
+    def add_bracket(ax, y_vals, p_val):
+        # Determine the symbol
+        symbol = get_stars(p_val)
+        
+        # Calculate positioning
+        y_max = np.nanmax(y_vals)
+        y_pos = y_max + np.abs(y_max) * 0.05 # Used absolute value to handle potential negative z-scores
+        h     = np.abs(y_max) * 0.03
+        
+        # Draw the bracket
+        ax.plot([0, 0, 1, 1], [y_pos, y_pos+h, y_pos+h, y_pos], lw=1.2, c='k')
+        
+        # Add the text (stars or ns)
+        # Shift 'ns' slightly higher or lower if needed for aesthetics
+        v_offset = np.abs(y_max) * 0.01 if symbol == "ns" else 0 
+        
+        ax.text(0.5, y_pos + h + v_offset, symbol,
+                ha='center', va='bottom', fontsize=12, 
+                weight='bold' if symbol != "ns" else 'normal')
+
+    # ── Run statistical tests on z-scores ─────────────────────────────────────────
+    p_alpha = welch_one_tailed('hill_q1_z', h1_greater='U', label='Alpha Diversity (Z)')
+    p_prop  = welch_one_tailed('prop_mapped_z', h1_greater='C', label='Prop Mapped (Z)')
+
+    # ── Shared plot_df ────────────────────────────────────────────────────────────
+    plot_df = metadata[~((metadata['treatment'] == 'U') & (metadata['timepoint'] == 0))].copy()
+    plot_df['timepoint_str'] = plot_df['timepoint'].astype(str)
+
+    # ── Build 2×2 figure ──────────────────────────────────────────────────────────
+    sns.set_style("white")
+
+    # Create a figure where the first column is 2x the width of the second
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8), 
+                             gridspec_kw={'width_ratios': [2, 0.5]})
+    (ax_tl, ax_tr), (ax_bl, ax_br) = axes
+
+    # ── TOP-LEFT: alpha diversity over time ───────────────────────────────────────
+    sns.lineplot(data=metadata, x='timepoint', y='hill_q1_z',
+                 hue='treatment', palette=color_palette,
+                 estimator='mean', errorbar='ci', linewidth=1,
+                 legend=True, ax=ax_tl)
+
+    sns.scatterplot(data=metadata, x='timepoint', y='hill_q1_z',
+                    hue='treatment', palette=color_palette,
+                    legend=False, ax=ax_tl, s=50, alpha=0.6)
+
+    ax_tl.set_xlabel("Day", fontsize=13)
+    ax_tl.set_ylabel("vOTU Alpha Diversity Exp(H') Z-Score", fontsize=12)
+    ax_tl.set_xticks([0, 7, 14, 21, 35])
+    ax_tl.tick_params(axis='y', which='both', left=True, labelsize=11) 
+    ax_tl.grid(True, alpha=0.3)
+    for sp in ax_tl.spines.values(): sp.set_visible(False)
+
+    # ── BOTTOM-LEFT: prop_mapped over time ────────────────────────────────────────
+    sns.lineplot(data=metadata, x='timepoint', y='prop_mapped_z',
+                 hue='treatment', palette=color_palette,
+                 estimator='mean', errorbar='ci', linewidth=1, linestyle='--',
+                 legend=True, ax=ax_bl)
+
+    sns.scatterplot(data=metadata, x='timepoint', y='prop_mapped_z',
+                    hue='treatment', palette=color_palette,
+                    legend=False, ax=ax_bl, s=50, alpha=0.6)
+
+    ax_bl.set_xlabel("Day", fontsize=13)
+    ax_bl.set_ylabel("Log(% RNA mapped to active vOTUs) Z-Score", fontsize=12)
+    ax_bl.set_xticks([0, 7, 14, 21, 35])
+    ax_bl.tick_params(axis='y', which='both', left=True, labelsize=11)
+    ax_bl.grid(True, alpha=0.3)
+    for sp in ax_bl.spines.values(): sp.set_visible(False)
+
+    # ── TOP-RIGHT: boxplot alpha diversity ────────────────────────────────────────
+    sns.boxplot(data=plot_df, x='treatment', y='hill_q1_z',
+                palette=color_palette, showfliers=False,
+                width=0.6, linewidth=1.2, ax=ax_tr)
+    add_stripplot(ax_tr, plot_df, 'hill_q1_z')
+    add_bracket(ax_tr, plot_df['hill_q1_z'].values, p_alpha)
+    ax_tr.set_xlabel("Treatment", fontsize=13)
+    ax_tr.set_ylabel("vOTU Alpha Diversity Exp(H') Z-Score", fontsize=12)
+    ax_tr.tick_params(axis='y', left=True)
+
+    # ── BOTTOM-RIGHT: boxplot prop_mapped ─────────────────────────────────────────
+    sns.boxplot(data=plot_df, x='treatment', y='prop_mapped_z',
+                palette=color_palette, showfliers=False,
+                width=0.6, linewidth=1.2, ax=ax_br)
+    add_stripplot(ax_br, plot_df, 'prop_mapped_z')
+    add_bracket(ax_br, plot_df['prop_mapped_z'].values, p_prop)
+    ax_br.set_xlabel("Treatment", fontsize=13)
+    ax_br.set_ylabel("Log(% RNA mapped to active vOTUs) Z-Score", fontsize=12)
+    ax_br.tick_params(axis='y', left=True)
+
+    # ── Save ──────────────────────────────────────────────────────────────────────
     fig.tight_layout()
-    plt.savefig(figfile, dpi=300)
+    plt.savefig(figfile, dpi=300, bbox_inches='tight')
     plt.show()
 
 
 # In[5]:
 
 
-plot_diversity_stats(df_1_read_mapped, 'active_vOTUs_1_read_mapped_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_1_read_mapped_alpha_diversity.pdf')
+plot_diversity_stats(df_1_read_mapped, 'active_vOTUs_1_read_mapped_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2_1_read_mapped_alpha_diversity.pdf')
 
 
 # In[6]:
 
 
-plot_diversity_stats(df_1_gene_mapped_per_10kb, 'active_vOTUs_1_gene_per_10kb_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_1_gene_per_10kb_alpha_diversity.pdf')
+plot_diversity_stats(df_1_gene_mapped_per_10kb, 'active_vOTUs_1_gene_per_10kb_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2_1_gene_per_10kb_alpha_diversity.pdf')
 
 
 # In[7]:
 
 
-plot_diversity_stats(df_5_reads_mapped, 'active_vOTUs_5_reads_mapped_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_5_reads_mapped_alpha_diversity.pdf')
+plot_diversity_stats(df_5_reads_mapped, 'active_vOTUs_5_reads_mapped_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2_5_reads_mapped_alpha_diversity.pdf')
 
 
 # In[8]:
 
 
-plot_diversity_stats(df_prop10, 'active_vOTUs_prop10_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_prop10_alpha_diversity.pdf')
+plot_diversity_stats(df_prop10, 'active_vOTUs_prop10_relative_abundance.tsv', '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2_prop10_alpha_diversity.pdf')
 
 
 # # Plot rank abundance of all vOTUs, then show which get filtered out by each cutoff
@@ -823,14 +903,396 @@ ax1_twin.set_xticks(group_midpoints)
 ax1_twin.set_xticklabels(unique_groups, size=14)
 
 plt.tight_layout()
-plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S3_rank_abundance.pdf', dpi=300)
+# plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2_rank_abundance.pdf', dpi=300)
 plt.show()
 
 
 # In[23]:
 
 
-get_ipython().system('jupyter nbconvert --to script 002S3-active-virus-alternatives.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S3-AB_vOTU_specaccum_alpha_diversity_rank_abundance')
+abundance_pivot_sorted
+
+
+# In[24]:
+
+
+abundance_pivot_sorted['group'].value_counts()
+
+
+# In[25]:
+
+
+annotations_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/vOTUs_filtered_metadata.tsv', sep='\t', usecols=['vOTU', 'length', 'concat_annotations'])
+annotations_df.head()
+
+
+# In[26]:
+
+
+annotations_grouped = annotations_df.groupby('vOTU').agg({'concat_annotations': ';'.join}).reset_index()
+
+
+# In[27]:
+
+
+abundance_pivot_sorted = abundance_pivot_sorted.merge(annotations_grouped, on='vOTU', how='left')
+
+
+# In[28]:
+
+
+lysis_keywords = [
+    "endolysin", "holin", "antiholin", "spanin", "i-spanin", "o-spanin",
+    "murein hydrolase", "peptidoglycan hydrolase",
+    "N-acetylmuramoyl-L-alanine amidase", "lysozyme",
+    "lytic transglycosylase", "muramidase", "autolysin", "pinholin",
+    "Rz"
+]
+
+replication_keywords = [
+    "DNA polymerase", "helicase", "primase", "DNA ligase",
+    "single-stranded binding protein", "SSB", "replication protein",
+    "rep protein", "DnaB", "DnaC", "DnaG", "origin binding protein",
+    "OBP", "replicase", "DNA-dependent DNA polymerase", "sliding clamp",
+    "clamp loader", "topoisomerase", "gyrase",
+    "ribonuclease H", "RNaseH", "recombinase", "strand transferase",
+    "exonuclease", "endonuclease"
+]
+
+integration_keywords = [
+    # Integration / excision
+    "integrase",
+    "recombinase", "excisionase",
+    "recombination directionality factor", "RDF", "phage integrase",
+    "lysogeny", "repressor", "prophage", "ParB", "partition"
+]
+
+structural_keywords = ['capsid', 'tail', 'packag', 'portal', 'terminase', 'spike', 'baseplate', 'internal virion', 'neck', 'prohead']
+
+
+def _annotation_matches(annotation_string, keywords):
+    """
+    Split a semicolon-delimited annotation string into individual annotations
+    and check whether any annotation contains a keyword (case-insensitive).
+    Returns True if any keyword is found in any annotation field.
+    """
+    if not isinstance(annotation_string, str) or annotation_string.strip() == "":
+        return False
+    annotations = annotation_string.split(";")
+    for annotation in annotations:
+        annotation_lower = annotation.lower()
+        for keyword in keywords:
+            if keyword.lower() in annotation_lower:
+                return True
+    return False
+
+
+abundance_pivot_sorted["lysis"] = abundance_pivot_sorted["concat_annotations"].apply(
+    lambda x: _annotation_matches(x, lysis_keywords)
+)
+
+abundance_pivot_sorted["replication"] = abundance_pivot_sorted["concat_annotations"].apply(
+    lambda x: _annotation_matches(x, replication_keywords)
+)
+
+abundance_pivot_sorted["integration"] = abundance_pivot_sorted["concat_annotations"].apply(
+    lambda x: _annotation_matches(x, integration_keywords)
+)
+
+abundance_pivot_sorted["structural"] = abundance_pivot_sorted["concat_annotations"].apply(
+    lambda x: _annotation_matches(x, structural_keywords)
+)
+
+
+
+# In[29]:
+
+
+abundance_pivot_sorted.columns
+
+
+# In[30]:
+
+
+abundance_pivot_sorted
+
+
+# In[31]:
+
+
+abundance_pivot_sorted[['lysis', 'replication', 'integration', 'structural']].sum()
+
+
+# In[32]:
+
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+# 2. Prepare Heatmap Data
+# Extract the boolean columns and transpose so categories are rows
+anno_cols = ['lysis', 'replication', 'integration', 'structural']
+# Convert True/False to 1/0 for plotting
+heatmap_data = abundance_pivot_sorted[anno_cols].astype(int).T.values
+
+# 3. Plotting
+# Increase height_ratios so the heatmap is much shorter than the scatter plots
+fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(16, 12), sharex=True, 
+                                    gridspec_kw={'height_ratios': [4, 4, 1.2]})
+
+# --- Catechin Plot ---
+ax1.scatter(abundance_pivot_sorted['catechin_rank'], 
+            abundance_pivot_sorted['log10_catechin'], 
+            c=point_colors, marker='o', s=20, alpha=0.7)
+ax1.set_ylabel('log10(GeTMM + 1)', size=12)
+ax1.set_title('Catechin Abundance', size=14, loc='left')
+
+# --- Unamended Plot ---
+ax2.scatter(abundance_pivot_sorted['catechin_rank'], 
+            abundance_pivot_sorted['log10_unamended'], 
+            c=point_colors, marker='o', s=20, alpha=0.7)
+ax2.set_ylabel('log10(GeTMM + 1)', size=12)
+ax2.set_title('Unamended Abundance', size=14, loc='left')
+
+# --- Annotation Heatmap ---
+# Added origin='lower' to put the first row at the bottom
+im = ax3.imshow(heatmap_data, aspect='auto', cmap='Greys', interpolation='nearest',
+                origin='lower',
+                extent=[0.5, len(abundance_pivot_sorted) + 0.5, -0.5, len(anno_cols) - 0.5])
+
+# Formatting remains the same
+ax3.set_yticks(range(len(anno_cols)))
+ax3.set_yticklabels(anno_cols, size=10)
+# Formatting the Heatmap axis
+ax3.set_yticks(range(len(anno_cols)))
+ax3.set_yticklabels(anno_cols, size=10)
+ax3.set_xlabel('vOTU Rank (ordered by group and Catechin abundance)', size=12)
+ax3.tick_params(axis='x', which='both', bottom=False, labelbottom=False) # Hide x ticks for heatmap
+
+# Add vertical group boundaries to ALL plots
+for ax in [ax1, ax2, ax3]:
+    for boundary in group_boundaries:
+        ax.axvline(x=boundary, color='gray', linestyle='--', alpha=0.5, linewidth=1)
+
+# Add group labels at the very top using a twin axis on ax1
+ax1_twin = ax1.twiny()
+ax1_twin.set_xlim(ax1.get_xlim())
+ax1_twin.set_xticks(group_midpoints)
+ax1_twin.set_xticklabels(unique_groups, size=12, fontweight='bold')
+
+plt.tight_layout()
+plt.subplots_adjust(hspace=0.2) # Adjust spacing between subplots
+plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S2-B_rank_abundance.pdf', dpi=300)
+plt.show()
+
+
+# In[33]:
+
+
+from venny4py.venny4py import *
+import matplotlib.pyplot as plt
+
+# Define the categories of interest
+anno_cols = ['structural', 'lysis', 'integration', 'replication']
+
+for group_name in abundance_pivot_sorted['group'].unique():
+    
+    group_df = abundance_pivot_sorted[abundance_pivot_sorted['group'] == group_name]
+    
+    # Map column names to sets of indices
+    sets = {
+        col: set(group_df[group_df[col] == True].index) 
+        for col in anno_cols
+    }
+    
+    if all(len(s) == 0 for s in sets.values()):
+        continue
+
+    # FIX: Removed 'as_no_gui'. Most versions only require 'sets' and 'out'.
+    # If you want to show it in a notebook/IDE, set out='save' (saves to file)
+    # or omit 'out' to just manipulate the plot directly.
+    venny4py(sets=sets)
+    
+    plt.title(f"Functional Overlap: {group_name}", fontsize=14, pad=25)
+    plt.show()
+
+
+# # What proportion of abundance do structural-only contigs make up?
+
+# In[34]:
+
+
+structural_lytic_active_only = abundance_pivot_sorted.loc[
+((abundance_pivot_sorted['structural'] == True)
+ | (abundance_pivot_sorted['lysis'] == True)
+)
+& (abundance_pivot_sorted['integration'] == False)
+& (abundance_pivot_sorted['replication'] == False)
+
+& (abundance_pivot_sorted['group'] == 'lytic_active')
+]
+
+
+# In[35]:
+
+
+lytic_active_sum_cat = abundance_pivot_sorted.loc[abundance_pivot_sorted['group'] == 'lytic_active']['catechin'].sum()
+lytic_active_sum_unamended = abundance_pivot_sorted.loc[abundance_pivot_sorted['group'] == 'lytic_active']['unamended'].sum()
+
+
+# In[36]:
+
+
+structural_active_sum_cat = structural_lytic_active_only['catechin'].sum()
+structural_active_sum_unamended = structural_lytic_active_only['unamended'].sum()
+
+
+# In[37]:
+
+
+structural_active_sum_cat / lytic_active_sum_cat
+
+
+# In[38]:
+
+
+structural_active_sum_unamended / lytic_active_sum_unamended
+
+
+# In[39]:
+
+
+# get length distributions
+structural_lytic_active_only
+
+
+# In[40]:
+
+
+structural_vOTUs = structural_lytic_active_only.vOTU.unique().tolist()
+
+
+# In[41]:
+
+
+length_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/vOTUs_filtered_metadata.tsv', usecols=['vOTU', 'length'], sep='\t').drop_duplicates()
+length_df
+
+
+# In[42]:
+
+
+sns.histplot(length_df.loc[length_df['vOTU'].isin(structural_vOTUs)], x='length', bins=30)
+
+
+# # What are their host predictions
+
+# In[43]:
+
+
+iphop_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/data/vOTUs_MAGs_no_cutoff_for_cytoscape.tsv', sep='\t')
+iphop_df = iphop_df.sort_values(by=['vOTU', 'Confidence score']).drop_duplicates('vOTU')
+
+
+# In[51]:
+
+
+structural_iphop_df = iphop_df.loc[iphop_df['vOTU'].isin(structural_vOTUs)]
+
+
+# In[54]:
+
+
+structural_iphop_df.highest_host_tax_rank.value_counts()
+
+
+# In[14]:
+
+
+replicate_frame = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/sample_metadata.csv')
+
+# Read metadata
+metadata = pd.read_csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/data/metaT_sample_metadata.csv")
+
+
+# prop reads mapping to vOTUs
+
+gff_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/combined_manual_filtered_gene_lengths.txt', sep='\t')
+gff_df = gff_df[['vOTU', 'gene']]
+gff_df.head()
+
+# Read the TSV file without header
+counts = pd.read_csv(
+"/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/htseq_vOTUs_100M_90FILTERED_REVSTRANDED_no0s.tsv",
+sep="\t",
+header=None
+)
+
+# Assign column names
+counts.columns = [
+"gene",
+"STM_0716_E_M_E002", "STM_0716_E_M_E003", "STM_0716_E_M_E004", "STM_0716_E_M_E025",
+"STM_0716_E_M_E027", "STM_0716_E_M_E029", "STM_0716_E_M_E030", "STM_0716_E_M_E031",
+"STM_0716_E_M_E033", "STM_0716_E_M_E034", "STM_0716_E_M_E035", "STM_0716_E_M_E050",
+"STM_0716_E_M_E051", "STM_0716_E_M_E052", "STM_0716_E_M_E054", "STM_0716_E_M_E055",
+"STM_0716_E_M_E056", "STM_0716_E_M_E058", "STM_0716_E_M_E059", "STM_0716_E_M_E060",
+"STM_0716_E_M_E062", "STM_0716_E_M_E063", "STM_0716_E_M_E064", "STM_0716_E_M_E066",
+"STM_0716_E_M_E067", "STM_0716_E_M_E068", "STM_0716_E_M_E070", "STM_0716_E_M_E071",
+"STM_0716_E_M_E072", "STM_0716_E_M_E121", "STM_0716_E_M_E122", "STM_0716_E_M_E123",
+"STM_0716_E_M_E125", "STM_0716_E_M_E126", "STM_0716_E_M_E127", "STM_0716_E_M_E129",
+"STM_0716_E_M_E130", "STM_0716_E_M_E131"
+]
+counts = counts.merge(gff_df, on='gene', how='left').dropna()
+counts_long = counts.melt(id_vars=['gene', 'vOTU'], var_name='Sample', value_name='num_reads_mapped')
+counts_long = counts_long.groupby(['vOTU', 'Sample']).agg({'num_reads_mapped': 'sum'}).reset_index()
+counts_long = counts_long.merge(replicate_frame, on='Sample', how='left')
+counts_long = counts_long.loc[counts_long['treatment'] != 'CT']
+
+reads_mapped_per_sample = counts_long.groupby(['Sample', 'treatment', 'day', 'replicate']).agg({'num_reads_mapped': 'sum'}).reset_index()
+reads_mapped_per_sample = reads_mapped_per_sample.merge(metadata[['Sample', 'total reads (R1+R2)']], on='Sample', how='left')
+reads_mapped_per_sample['prop_mapped'] = reads_mapped_per_sample['num_reads_mapped'] / reads_mapped_per_sample['total reads (R1+R2)'] * 100
+reads_mapped_per_sample['day'] = reads_mapped_per_sample['day'].astype(int)
+metadata = metadata.merge(reads_mapped_per_sample[['Sample', 'prop_mapped']], on='Sample', how='left').dropna()
+
+
+# In[20]:
+
+
+np.std(metadata.prop_mapped)
+
+
+# In[21]:
+
+
+np.mean(metadata.prop_mapped)
+
+
+# In[23]:
+
+
+# 1. Define your probability thresholds (0.0, 0.1, ..., 1.0)
+quantiles = np.linspace(0, 1, 11)
+
+# 2. Calculate the quantiles
+# If you want the quantiles of the raw values in that column:
+deciles = np.quantile(counts_long['num_reads_mapped'], quantiles)
+
+# Display results as a Series for better readability
+quantile_table = pd.Series(deciles, index=[f"{int(q*100)}%" for q in quantiles])
+print(quantile_table)
+
+
+# In[45]:
+
+
+get_ipython().system('jupyter nbconvert --to script 002S2-active-virus-alternatives.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S2-AB_vOTU_specaccum_alpha_diversity_rank_abundance')
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:
