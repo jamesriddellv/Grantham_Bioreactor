@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import pandas as pd
@@ -21,7 +21,7 @@ print_versions(globals())
 
 # # The goal is to look at the relative abundance of JAGFXR01 and viral populations within the same samples, and make an estimate on how many viruses to hosts we had
 
-# In[2]:
+# In[ ]:
 
 
 # host = 'g__Pseudomonas_E'
@@ -31,44 +31,51 @@ host = 'g__Paludibacter'
 
 # # Load metaT datasets
 
-# In[3]:
+# In[ ]:
 
 
 MAG_metaT = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/MAG_GTDB_getmm.tsv', sep='\t')
 MAG_metaT.head()
 
 
-# In[4]:
+# In[ ]:
 
 
 vOTU_metaT = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/vOTU_metadata_getmm.tsv', sep='\t')
 vOTU_metaT.head()
 
 
-# In[5]:
+# In[ ]:
 
 
-# indicator colors from cytoscape
 color_dict = {
-    '1': '#A6761D',
-    '2': '#FFFF99',
-    '3': '#A1D99B',
-    '4': '#EF3B2C',
-    '5': '#1AC7C2',
+    # --- Single Groups ---
+    'Group1_Unam_D0': '#A6761D',                       # Matches '1' (Brown/Ochre)
+    'Group2_D7_All': '#FFFF99',                        # Matches '2' (Yellow)
+    'Group3_Unam_Late': '#A1D99B',                     # Matches '3' (Light Green)
+    'Group4_Cat_D21': '#EF3B2C',                       # Matches '4' (Red)
+    'Group5_Cat_D14_D35': '#1AC7C2',                   # Matches '5' (Teal)
     
-    '2,3,4': '#FCBBA1',
-    '2,3,4,5': '#252525',
-    '2,4': '#238B45',
-    '2,4,5': '#6BAED6',
-    '2,5': '#F768A1',
-    '3,4': '#807DBA',
-    '3,5': '#08589E',
-
-    '': '#808080'
+    # --- Exact Intersection Matches From Your Previous Dict ---
+    'Group4_Cat_D21+Group5_Cat_D14_D35': '#F768A1',    # Matches '4,5' -> Assigned '2,5' profile (Pink)
+    'Group3_Unam_Late+Group4_Cat_D21+Group5_Cat_D14_D35': '#08589E', # Matches '3,4,5' -> Assigned '3,5' profile (Deep Blue)
+    'Group2_D7_All+Group4_Cat_D21+Group5_Cat_D14_D35': '#6BAED6',    # Matches '2,4,5' (Light Blue)
+    'Group2_D7_All+Group5_Cat_D14_D35': '#F768A1',    # Matches '2,5' (Pink)
+    'Group2_D7_All+Group3_Unam_Late+Group4_Cat_D21+Group5_Cat_D14_D35': '#252525', # Matches '2,3,4,5' (Charcoal/Black)
+    
+    # --- Newly Encountered Intersections (Mapped logically) ---
+    'Group1_Unam_D0+Group2_D7_All': '#E6AB02',         # Intersection 1,2 (Dark Gold)
+    'Group1_Unam_D0+Group2_D7_All+Group5_Cat_D14_D35': '#A6D854', # Intersection 1,2,5 (Olive/Lime)
+    'Group1_Unam_D0+Group4_Cat_D21': '#D95F02',        # Intersection 1,4 (Orange)
+    'Group2_D7_All+Group3_Unam_Late': '#66C2A5',       # Intersection 2,3 (Mint/Sage)
+    'Group1_Unam_D0+Group2_D7_All+Group4_Cat_D21': '#7570B3', # Intersection 1,2,4 (Slate Purple)
+    
+    # --- Fallback/Empty ---
+    '': '#808080'                                      # Neutral Grey
 }
 
 
-# In[6]:
+# In[ ]:
 
 
 def plot_metaT_profiles(host):
@@ -198,13 +205,13 @@ def plot_metaT_profiles(host):
     
     plt.suptitle(host, fontsize=16, ha="right")
     plt.tight_layout()
-    plt.savefig(f'/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_{host}_vOTU_metaT.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_{host}_vOTU_metaT.pdf', dpi=300, bbox_inches='tight')
     plt.show()
 
     return merged_df
 
 
-# In[11]:
+# In[ ]:
 
 
 def plot_metaT_profiles_no_MAG(host):
@@ -315,43 +322,60 @@ def plot_metaT_profiles_no_MAG(host):
     return merged_df_mean
 
 
-# In[12]:
+# In[ ]:
 
 
 jag = plot_metaT_profiles_no_MAG('g__JAGFXR01')
 
 
-# In[9]:
+# In[ ]:
 
 
 plot_metaT_profiles('g__Paludibacter')
 
 
-# In[12]:
+# In[ ]:
 
 
 jag = plot_metaT_profiles('g__JAGFXR01')
 
 
-# In[16]:
+# In[ ]:
 
 
 plot_metaT_profiles('g__Clostridium')
 
 
-# In[17]:
+# In[ ]:
 
 
 plot_metaT_profiles('g__Pseudomonas_E')
 
 
-# In[18]:
+# In[ ]:
 
 
 plot_metaT_profiles('g__Methanothrix')
 
 
-# In[14]:
+# In[ ]:
+
+
+def get_ratio_of_top_two(day):
+    mean_day = jag.loc[(jag['treatment'] == 'catechin') & (jag['MAG'].str.startswith('contig')) & (jag['day'] == day)].groupby('MAG').agg({'getmm': 'mean'}).reset_index()
+    
+    # get ratio between average contig_591846 value and next highest vOTU
+    ratio = mean_day.loc[mean_day['MAG'] == 'contig_591846']['getmm'].values[0] / mean_day.loc[mean_day['MAG'] != 'contig_591846']['getmm'].max()
+    return ratio
+
+
+# In[ ]:
+
+
+get_ratio_of_top_two(14), get_ratio_of_top_two(21), get_ratio_of_top_two(35)
+
+
+# In[ ]:
 
 
 get_ipython().system('jupyter nbconvert --to script 007-vOTU_vs_host_metaT.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/04-A_vOTU_MAG_profiles_metaT')
