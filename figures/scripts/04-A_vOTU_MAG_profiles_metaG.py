@@ -146,30 +146,30 @@ vOTU_metaG = vOTU_metaG_meancov
 
 
 color_dict = {
-    '1': '#A6761D',
-    '2': '#FFFF99',
-    '3': '#A1D99B',
-    '4': '#EF3B2C',
-    '5': '#1AC7C2',
+    # --- Single Groups ---
+    'Group1_Unam_D0': '#A6761D',                       # Matches '1' (Brown/Ochre)
+    'Group2_D7_All': '#FFFF99',                        # Matches '2' (Yellow)
+    'Group3_Unam_Late': '#A1D99B',                     # Matches '3' (Light Green)
+    'Group4_Cat_D21': '#EF3B2C',                       # Matches '4' (Red)
+    'Group5_Cat_D14_D35': '#1AC7C2',                   # Matches '5' (Teal)
     
-    '2,3,4': '#FCBBA1',
-    '2,3,4,5': '#252525',
-    '2,4': '#238B45',
-    '2,4,5': '#6BAED6',
-    '2,5': '#F768A1',
-    '3,4': '#807DBA',
-    '3,5': '#08589E',
-
-    '': '#808080'
+    # --- Exact Intersection Matches From Your Previous Dict ---
+    'Group4_Cat_D21+Group5_Cat_D14_D35': '#F768A1',    # Matches '4,5' -> Assigned '2,5' profile (Pink)
+    'Group3_Unam_Late+Group4_Cat_D21+Group5_Cat_D14_D35': '#08589E', # Matches '3,4,5' -> Assigned '3,5' profile (Deep Blue)
+    'Group2_D7_All+Group4_Cat_D21+Group5_Cat_D14_D35': '#6BAED6',    # Matches '2,4,5' (Light Blue)
+    'Group2_D7_All+Group5_Cat_D14_D35': '#F768A1',    # Matches '2,5' (Pink)
+    'Group2_D7_All+Group3_Unam_Late+Group4_Cat_D21+Group5_Cat_D14_D35': '#252525', # Matches '2,3,4,5' (Charcoal/Black)
+    
+    # --- Newly Encountered Intersections (Mapped logically) ---
+    'Group1_Unam_D0+Group2_D7_All': '#E6AB02',         # Intersection 1,2 (Dark Gold)
+    'Group1_Unam_D0+Group2_D7_All+Group5_Cat_D14_D35': '#A6D854', # Intersection 1,2,5 (Olive/Lime)
+    'Group1_Unam_D0+Group4_Cat_D21': '#D95F02',        # Intersection 1,4 (Orange)
+    'Group2_D7_All+Group3_Unam_Late': '#66C2A5',       # Intersection 2,3 (Mint/Sage)
+    'Group1_Unam_D0+Group2_D7_All+Group4_Cat_D21': '#7570B3', # Intersection 1,2,4 (Slate Purple)
+    
+    # --- Fallback/Empty ---
+    '': '#808080'                                      # Neutral Grey
 }
-
-
-# In[17]:
-
-
-indicators = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/indicator_vOTUs_per_cluster_multi.csv')
-indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_groups']]
-indicators
 
 
 # In[11]:
@@ -318,31 +318,31 @@ plot_metaG_profiles('g__Methanobacterium_B')
 plot_metaG_profiles('g__Paludibacter')
 
 
-# In[ ]:
+# In[17]:
 
 
 merged_df = plot_metaG_profiles('g__JAGFXR01')
 
 
-# In[ ]:
+# In[18]:
 
 
 merged_df['MAG'].unique()
 
 
-# In[ ]:
+# In[19]:
 
 
 plot_metaG_profiles('g__Clostridium')
 
 
-# In[ ]:
+# In[20]:
 
 
 plot_metaG_profiles('g__Pseudomonas_E')
 
 
-# In[ ]:
+# In[21]:
 
 
 def plot_metaG_profiles_no_color(host):
@@ -456,13 +456,19 @@ def plot_metaG_profiles_no_color(host):
     return merged_df
 
 
-# In[ ]:
+# In[22]:
 
 
 jagfxr01_metaG = plot_metaG_profiles_no_color('g__JAGFXR01')
 
 
-# In[ ]:
+# In[24]:
+
+
+jagfxr01_metaG.to_csv('data/4A_JAGFXR01_metaG
+
+
+# In[23]:
 
 
 get_ipython().system('jupyter nbconvert --to script 007-vOTU_vs_host_metaG.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/04-A_vOTU_MAG_profiles_metaG')
