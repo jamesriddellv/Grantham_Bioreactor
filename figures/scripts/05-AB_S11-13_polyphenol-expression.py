@@ -505,7 +505,7 @@ print("\nSummary Statistics:")
 print(summary.to_string(index=False))
 
 
-# In[83]:
+# In[34]:
 
 
 import pandas as pd
@@ -599,14 +599,79 @@ plt.show()
 print(f"Plot saved to: {save_path}")
 
 
-# In[34]:
+# In[35]:
+
+
+# --- 1. Use Your Exact Configuration Lists ---
+plot_configs = [
+    {'enzyme': 'PGR',    'mags': catechin_degraders,    'functional_group': 'Catechin degraders'},
+    {'enzyme': 'pgthAB', 'mags': catechin_degraders,    'functional_group': 'Catechin degraders'},
+    {'enzyme': 'PGR',    'mags': pgthab_mags,           'functional_group': 'Additional polyphenol degraders'},
+    {'enzyme': 'pgthAB', 'mags': pgthab_mags,           'functional_group': 'Additional polyphenol degraders'}
+]
+
+compiled_records = []
+
+# --- 2. Iterate through Panels & Generate Metrics ---
+for config in plot_configs:
+    # Filter base data for specific enzyme and targeted MAG list
+    filtered_df = df.loc[
+        (df['enzyme'] == config['enzyme']) & 
+        (df['MAG'].isin(config['mags']))
+    ].copy()
+    
+    if filtered_df.empty:
+        continue
+
+    # Aggregate total expression by sample
+    sample_sums = filtered_df.groupby(['sample']).agg({'geTMM': 'sum'}).reset_index()
+    sample_sums.columns = ['Sample', 'total_getmm']
+    sample_sums = sample_sums.merge(replicate_frame, on='Sample', how='left')
+    
+    # Calculate Welch's T-test p-value across treatments (collapsing days)
+    group1 = sample_sums[sample_sums['treatment'] == 'catechin']['total_getmm']
+    group2 = sample_sums[sample_sums['treatment'] == 'unamended']['total_getmm']
+    
+    p_val_numeric = np.nan
+    if len(group1) > 1 and len(group2) > 1:
+        _, p_val = stats.ttest_ind(group1, group2, equal_var=False)
+        p_val_numeric = round(p_val, 6)
+
+    # Append individual biological replicate rows to compilation array
+    for _, row in sample_sums.iterrows():
+        compiled_records.append({
+            'Panel_Title': f"{config['enzyme']} ({config['functional_group']})",
+            'Enzyme': config['enzyme'],
+            'Target_Functional_Group': config['functional_group'],
+            'Sample_ID': row['Sample'],
+            'Treatment': row['treatment'].capitalize(),
+            'Timepoint_Days': int(row['day']),
+            'Total_Expression_geTMM': round(row['total_getmm'], 4),
+            'Welch_Anova_p_value': p_val_numeric
+        })
+
+# --- 3. Build tidy DataFrame ---
+df_supplemental_s11 = pd.DataFrame(compiled_records)
+
+# Sort logically for spreadsheet readability
+df_supplemental_s11 = df_supplemental_s11.sort_values(
+    by=['Target_Functional_Group', 'Enzyme', 'Treatment', 'Timepoint_Days', 'Sample_ID']
+).reset_index(drop=True)
+
+# --- 4. Export to Destination Directory ---
+export_path = '/users/PAS1573/riddell26/data/S11_enzyme_grid_data.csv'
+df_supplemental_s11.to_csv(export_path, index=False)
+df_supplemental_s11
+
+
+# In[36]:
 
 
 MAG_metaT = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/MAG_GTDB_getmm.tsv', sep='\t')
 MAG_metaT.head()
 
 
-# In[35]:
+# In[37]:
 
 
 # Define colors for treatments
@@ -623,13 +688,13 @@ metadata = metadata.drop(columns=['timepoint'])
 
 
 
-# In[36]:
+# In[38]:
 
 
 df['geTMM'].min()
 
 
-# In[37]:
+# In[39]:
 
 
 # Create a mapping of MAG to taxonomic rank
@@ -709,14 +774,14 @@ for group_name, group_mags in [
 
 # # Now that we found the enriched MAGs, add the hydrogenase activity
 
-# In[38]:
+# In[40]:
 
 
 hydrogenase = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/hydrogenase_expression.csv')
 hydrogenase
 
 
-# In[39]:
+# In[41]:
 
 
 # group by uptake, bidirectional, and consuming
@@ -724,32 +789,32 @@ hyd_direction = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-ge
 hyd_direction
 
 
-# In[40]:
+# In[42]:
 
 
 hyd_dict = hyd_direction.groupby('direction')['hydrogenase_group'].apply(list).to_dict()
 hyd_dict
 
 
-# In[41]:
+# In[43]:
 
 
 hyd_direction.direction.unique()
 
 
-# In[42]:
+# In[44]:
 
 
 hydrogenase = hydrogenase.merge(hyd_direction, on='hydrogenase_group', how='left')
 
 
-# In[43]:
+# In[45]:
 
 
 hydrogenase
 
 
-# In[44]:
+# In[46]:
 
 
 enriched_mags = (sorted(enriched_3plus_timepoints) + 
@@ -760,19 +825,19 @@ hydrogenase_enriched_only = hydrogenase.loc[hydrogenase['MAG'].isin(enriched_mag
 len(enriched_mags), hydrogenase_enriched_only.MAG.nunique()
 
 
-# In[45]:
+# In[47]:
 
 
 hydrogenase_enriched_only = hydrogenase_enriched_only.merge(df[['MAG', 'GTDB', 'K', 'P', 'C', 'O', 'F', 'G', 'S', 'highest_host_tax_rank', 'Completeness', 'Contamination']].drop_duplicates(), how='left')
 
 
-# In[46]:
+# In[48]:
 
 
 hydrogenase_enriched_only = hydrogenase_enriched_only.rename(columns={'hydrogenase_group': 'description'})
 
 
-# In[47]:
+# In[49]:
 
 
 h_melted = hydrogenase_enriched_only.melt(id_vars=['gene', 'description', 'direction', 'MAG', 'GTDB', 'K', 'P', 'C', 'O', 'F', 'G', 'S', 'highest_host_tax_rank', 'Completeness', 'Contamination'],
@@ -780,7 +845,7 @@ h_melted = hydrogenase_enriched_only.melt(id_vars=['gene', 'description', 'direc
 h_melted
 
 
-# In[48]:
+# In[50]:
 
 
 # no longer grouping by enzyme group, instead by direction.
@@ -789,27 +854,27 @@ h_melted
 h_melted = h_melted.rename(columns={'direction': 'enzyme'})
 
 
-# In[49]:
+# In[51]:
 
 
 h_melted = h_melted.groupby(['gene', 'enzyme', 'MAG', 'GTDB', 'K', 'P', 'C', 'O', 'F', 'G', 'S',
        'highest_host_tax_rank', 'sample', 'Completeness', 'Contamination']).agg({"geTMM": "sum"}).reset_index()
 
 
-# In[50]:
+# In[52]:
 
 
 h_melted.columns
 
 
-# In[51]:
+# In[53]:
 
 
 h_melted = h_melted.merge(df[['sample', 'treatment', 'time']].drop_duplicates(), on='sample', how='left')
 h_melted.columns
 
 
-# In[52]:
+# In[54]:
 
 
 df = df[['gene', 'MAG', 'enzyme', 'sample',
@@ -817,7 +882,7 @@ df = df[['gene', 'MAG', 'enzyme', 'sample',
        'highest_host_tax_rank', 'Completeness', 'Contamination']]
 
 
-# In[53]:
+# In[55]:
 
 
 h_melted = h_melted[['gene', 'MAG', 'enzyme', 'sample',
@@ -825,25 +890,25 @@ h_melted = h_melted[['gene', 'MAG', 'enzyme', 'sample',
        'highest_host_tax_rank', 'Completeness', 'Contamination']]
 
 
-# In[54]:
+# In[56]:
 
 
 h_melted.MAG.nunique()
 
 
-# In[55]:
+# In[57]:
 
 
 df_merged = pd.concat([h_melted, df])
 
 
-# In[56]:
+# In[58]:
 
 
 df_merged
 
 
-# In[57]:
+# In[59]:
 
 
 # Convert to dictionary with MAG as key and (completeness, contamination) tuple as value
@@ -853,7 +918,7 @@ completeness_contamination_dict = dict(zip(
 ))
 
 
-# In[58]:
+# In[60]:
 
 
 df_merged = df_merged.loc[(df_merged['Completeness'] > 50) & (df_merged['Contamination'] < 10)]
@@ -862,13 +927,13 @@ df_merged
 
 # # Add additional polpyhenol metabolisms
 
-# In[59]:
+# In[61]:
 
 
 df_merged.columns
 
 
-# In[60]:
+# In[62]:
 
 
 camper_genes_df = camper_genes_df.merge(df[['MAG', 'GTDB', 'K', 'P', 'C', 'O', 'F', 'G', 'S', 'highest_host_tax_rank', 'Completeness', 'Contamination']].drop_duplicates(), how='left', on='MAG')
@@ -876,13 +941,13 @@ camper_genes_df = camper_genes_df.loc[camper_genes_df['MAG'].isin(enriched_mags)
 camper_genes_df
 
 
-# In[61]:
+# In[63]:
 
 
 camper_genes_df.columns
 
 
-# In[62]:
+# In[64]:
 
 
 camper_genes_melted = camper_genes_df.melt(id_vars=['gene', 'fasta', 'scaffold',
@@ -894,25 +959,25 @@ camper_genes_melted = camper_genes_df.melt(id_vars=['gene', 'fasta', 'scaffold',
 camper_genes_melted['enzyme'] = camper_genes_melted['camper_definition'].fillna('').apply(lambda x: x.split(';', 1)[0])
 
 
-# In[63]:
+# In[65]:
 
 
 camper_genes_melted
 
 
-# In[64]:
+# In[66]:
 
 
 camper_genes_melted.enzyme.unique()
 
 
-# In[65]:
+# In[67]:
 
 
 camper_genes_melted.camper_definition.unique()
 
 
-# In[66]:
+# In[68]:
 
 
 # filter for pgthAB and PGR-containing MAGs
@@ -920,7 +985,7 @@ camper_genes_melted.camper_definition.unique()
 # pgthab_pgr_mags_genes_melted = camper_genes_melted.loc[camper_genes_melted['fasta'].isin(pgthab_pgr_mags)]
 
 
-# In[67]:
+# In[69]:
 
 
 # what enzymes are upstream of phloroglucinol? Find these and put them in a list, then filter.
@@ -955,32 +1020,32 @@ additional_enzymes = [
 ]
 
 
-# In[68]:
+# In[70]:
 
 
 additional_melted = camper_genes_melted.loc[camper_genes_melted['enzyme'].isin(additional_enzymes)]
 additional_melted
 
 
-# In[69]:
+# In[71]:
 
 
 additional_melted = additional_melted.merge(df_merged[['sample', 'treatment', 'time']].drop_duplicates(), on='sample', how='left')
 
 
-# In[70]:
+# In[72]:
 
 
 additional_melted.MAG.nunique()
 
 
-# In[71]:
+# In[73]:
 
 
 df_merged.columns
 
 
-# In[72]:
+# In[74]:
 
 
 additional_melted_to_merge = additional_melted[['gene', 'MAG', 'enzyme', 'sample', 'treatment', 'time', 'geTMM', 'GTDB',
@@ -988,19 +1053,19 @@ additional_melted_to_merge = additional_melted[['gene', 'MAG', 'enzyme', 'sample
        'Completeness', 'Contamination']]
 
 
-# In[73]:
+# In[75]:
 
 
 df_merged.MAG.nunique()
 
 
-# In[74]:
+# In[76]:
 
 
 df_merged = pd.concat([df_merged, additional_melted_to_merge])
 
 
-# In[75]:
+# In[77]:
 
 
 df_merged.enzyme.unique()
@@ -1008,7 +1073,7 @@ df_merged.enzyme.unique()
 
 # # Make heatmap with df_merged
 
-# In[76]:
+# In[78]:
 
 
 import numpy as np
@@ -1246,7 +1311,68 @@ print(f"Enriched 1 timepoint: {sum(fc_df_enriched['Enrichment_Type'] == '1 timep
 print(f"\nLog2 FC range: {np.nanmin(fc_df_enriched[[col for col in fc_df_enriched.columns if col not in ['Taxonomy', 'Enrichment_Type']]].values):.2f} to {np.nanmax(fc_df_enriched[[col for col in fc_df_enriched.columns if col not in ['Taxonomy', 'Enrichment_Type']]].values):.2f}")
 
 
-# In[77]:
+# In[79]:
+
+
+# --- 1. Reshape the Heatmap Data into a Tidy Format ---
+# (Assuming fc_df_enriched from your heatmap script is already generated)
+# Reset index to turn the MAG identifier into a formal column
+supplemental_5a = fc_df_enriched.reset_index().rename(columns={'index': 'MAG_ID'})
+
+# Identify data columns (enzyme_day combinations) vs. annotation columns
+annotation_cols = ['MAG_ID', 'Taxonomy', 'Enrichment_Type']
+data_cols = [col for col in supplemental_5a.columns if col not in annotation_cols]
+
+# Melt the DataFrame from wide format to a long/tidy format
+df_tidy_5a = supplemental_5a.melt(
+    id_vars=annotation_cols,
+    value_vars=data_cols,
+    var_name='Enzyme_Timepoint',
+    value_name='Log2_Fold_Change'
+)
+
+# --- 2. Clean and Parse Merged Fields for Reader Clarity ---
+# Split the "Enzyme_Timepoint" column into two explicit scientific columns
+df_tidy_5a['Enzyme'] = df_tidy_5a['Enzyme_Timepoint'].apply(lambda x: x.split('_day')[0])
+df_tidy_5a['Timepoint_Days'] = df_tidy_5a['Enzyme_Timepoint'].apply(lambda x: int(x.split('_day')[1]))
+
+# Extract clean taxonomic lineages and quality values using your dictionaries
+# (Avoids relying on the plot-formatted label strings containing '\n' characters)
+df_tidy_5a['Taxonomic_Lineage'] = df_tidy_5a['MAG_ID'].map(lambda m: mag_to_tax.get(m, 'Unknown'))
+df_tidy_5a['Completeness_Contamination'] = df_tidy_5a['MAG_ID'].map(lambda m: completeness_contamination_dict.get(m, 'Unknown'))
+
+# Organize column order logically for publication spreadsheet guidelines
+final_column_order = [
+    'MAG_ID',
+    'Taxonomic_Lineage',
+    'Completeness_Contamination',
+    'Enrichment_Type',
+    'Enzyme',
+    'Timepoint_Days',
+    'Log2_Fold_Change'
+]
+df_tidy_5a = df_tidy_5a[final_column_order]
+
+# Sort columns systematically so it reads intuitively
+df_tidy_5a = df_tidy_5a.sort_values(
+    by=['Enrichment_Type', 'MAG_ID', 'Enzyme', 'Timepoint_Days']
+).reset_index(drop=True)
+
+# --- 3. Format Precision and Handle Missing Values ---
+# Round numeric entries to a publication-standard precision
+df_tidy_5a['Log2_Fold_Change'] = df_tidy_5a['Log2_Fold_Change'].round(4)
+
+# Replace internal NaN representations with an explicit descriptor for missing data
+# This represents cases where there was no sequence coverage (rendered as light gray boxes in the plot)
+df_tidy_5a['Log2_Fold_Change'] = df_tidy_5a['Log2_Fold_Change'].fillna('No Detected Expression')
+
+# --- 4. Export to Journal-Ready CSV ---
+csv_path_5a = '/users/PAS1573/riddell26/data/5A_MAG_polyphenol_activity_heatmap_source_data.csv'
+df_tidy_5a.to_csv(csv_path_5a, index=False)
+df_tidy_5a
+
+
+# In[80]:
 
 
 import matplotlib.pyplot as plt
@@ -1332,14 +1458,14 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S10B-Hydrogen
 plt.show()
 
 
-# In[78]:
+# In[81]:
 
 
 catechin_MAG_df = hydrogenase.loc[hydrogenase['MAG'].isin(catechin_degraders)]
 catechin_MAG_df.columns
 
 
-# In[79]:
+# In[82]:
 
 
 import matplotlib.pyplot as plt
@@ -1413,13 +1539,13 @@ plt.tight_layout()
 plt.show()
 
 
-# In[80]:
+# In[83]:
 
 
 # Plot hydrogenase uptake over time as proportion by catechin degraders vs non-catechin-degraders
 
 
-# In[93]:
+# In[84]:
 
 
 hydrogenase_uptake_catechin = (
@@ -1506,7 +1632,7 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/hydrogenase_u
 plt.show()
 
 
-# In[105]:
+# In[85]:
 
 
 import matplotlib.pyplot as plt
@@ -1593,7 +1719,47 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/hydrogenase_u
 plt.show()
 
 
-# In[81]:
+# In[86]:
+
+
+# 1. Clean and organize the dataframe for publication
+# (Assuming df_summed from your plotting script is already generated)
+supplemental_df = df_summed.copy()
+
+# Rename columns to standard, reader-friendly scientific nomenclature
+rename_dict = {
+    'Sample': 'Sample_ID',
+    'treatment': 'Treatment',
+    'day': 'Timepoint_Days',
+    'subset': 'Functional_Group',
+    'geTMM': 'Total_geTMM',
+    'log_geTMM': 'Log_Transformed_geTMM_ln_x_plus_1'
+}
+supplemental_df = supplemental_df.rename(columns=rename_dict)
+
+# Drop columns created purely for matplotlib/seaborn configurations
+columns_to_keep = list(rename_dict.values())
+supplemental_df = supplemental_df[columns_to_keep]
+
+# Sort logically by group, treatment, and timeline so reviewers/readers can follow it easily
+supplemental_df = supplemental_df.sort_values(
+    by=['Functional_Group', 'Treatment', 'Timepoint_Days', 'Sample_ID']
+).reset_index(drop=True)
+
+# 2. Round floating-point columns to a reasonable precision (e.g., 4 decimal places)
+supplemental_df['Total_geTMM'] = supplemental_df['Total_geTMM'].round(4)
+supplemental_df['Log_Transformed_geTMM_ln_x_plus_1'] = supplemental_df['Log_Transformed_geTMM_ln_x_plus_1'].round(4)
+
+# 3. Export to Journal-Ready Formats
+# Option A: CSV format (Highly preferred by open-science journals)
+csv_path = '/users/PAS1573/riddell26/data/5B_hydrogenase_geTMM.csv'
+supplemental_df.to_csv(csv_path, index=False)
+
+# Preview the clean table layout
+supplemental_df.head()
+
+
+# In[87]:
 
 
 # average intensity per mag:
@@ -1669,7 +1835,7 @@ plt.tight_layout()
 plt.show()
 
 
-# In[94]:
+# In[88]:
 
 
 import matplotlib.pyplot as plt
@@ -1726,7 +1892,70 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/04-B_hydrogen
 plt.show()
 
 
-# In[101]:
+# In[89]:
+
+
+# --- 1. Calculate Totals for Catechin Degraders ---
+total_catechin_degraders = plot_ready_catechin['geTMM'].sum()
+
+# --- 2. Split Non-Degraders into Specific Genera vs. Others ---
+jaxai_mask = plot_ready_non_degraders['MAG'].str.contains('STM_0716_E_M_E026_E030_E034_A_bin.12', na=False)
+jaatfl_mask = plot_ready_non_degraders['MAG'].str.contains('STM_0716_E_M_E058_A_bin.18', na=False)
+
+jaxai_val = plot_ready_non_degraders.loc[jaxai_mask, 'geTMM'].sum()
+jaatfl_val = plot_ready_non_degraders.loc[jaatfl_mask, 'geTMM'].sum()
+other_non_degraders_val = plot_ready_non_degraders.loc[~(jaxai_mask | jaatfl_mask), 'geTMM'].sum()
+
+# --- 3. Prepare Tidy Data for Supplemental Table ---
+# Reformat labels to be clean and single-lined for spreadsheet cells, 
+# and explicitly document the respective target MAG bins for reproducibility.
+data_records = [
+    {
+        'Pie_Chart_Label': 'Catechin degraders',
+        'Functional_Group': 'Catechin degraders',
+        'Total_Expression_geTMM': total_catechin_degraders
+    },
+    {
+        'Pie_Chart_Label': 'Actinomycetes g__JAEXAI01 (polyphenol degrader)',
+        'Functional_Group': 'Polyphenol degraders',
+        'Total_Expression_geTMM': jaxai_val
+    },
+    {
+        'Pie_Chart_Label': 'Actinomycetes g__JAATFL01 (polyphenol degrader)',
+        'Functional_Group': 'Polyphenol degraders',
+        'Total_Expression_geTMM': jaatfl_val
+    },
+    {
+        'Pie_Chart_Label': 'Other polyphenol degraders',
+        'Functional_Group': 'Polyphenol degraders',
+        'Total_Expression_geTMM': other_non_degraders_val
+    }
+]
+
+# Convert records to a DataFrame
+df_supplemental_pie = pd.DataFrame(data_records)
+
+# Filter out categories with 0 values, matching the exact filtering logic used for the pie chart
+df_supplemental_pie = df_supplemental_pie[df_supplemental_pie['Total_Expression_geTMM'] > 0].reset_index(drop=True)
+
+# Pre-calculate percentages so readers can easily map rows back to the pie slices
+total_expression = df_supplemental_pie['Total_Expression_geTMM'].sum()
+df_supplemental_pie['Slice_Percentage'] = (df_supplemental_pie['Total_Expression_geTMM'] / total_expression) * 100
+
+# Format numerical precision for professional standard publication tables
+df_supplemental_pie['Total_Expression_geTMM'] = df_supplemental_pie['Total_Expression_geTMM'].round(4)
+df_supplemental_pie['Slice_Percentage'] = df_supplemental_pie['Slice_Percentage'].round(2)
+
+# --- 4. Export to Journal-Ready CSV ---
+csv_path = '/users/PAS1573/riddell26/data/5B_hydrogenase_piechart.csv'
+df_supplemental_pie.to_csv(csv_path, index=False)
+
+print(f"Supplemental data table successfully saved to: {csv_path}")
+print("\nPreview of the supplemental table layout:")
+df_supplemental_pie
+
+
+# In[90]:
 
 
 import pandas as pd
@@ -1768,7 +1997,7 @@ print(f"Total geTMM (Non-Degraders):      {total_non:,.2f}")
 print(f"Non-Degraders are {global_ratio:.2f}x more abundant in total H2 uptake.\n")
 
 
-# In[102]:
+# In[91]:
 
 
 # What proportion of total H2 uptake is attributed to these top two MAGs?
@@ -1833,7 +2062,7 @@ for label, data in stats.items():
     print(f"  - Attribution: {data['percentage']:.2f}%\n")
 
 
-# In[103]:
+# In[92]:
 
 
 def get_top_mags_plot_data(df, replicate_df, tax_df, treatment_target='catechin', day_min=7, day_max=35, top_n=3):
@@ -1932,19 +2161,19 @@ plt.tight_layout()
 plt.show()
 
 
-# In[86]:
+# In[93]:
 
 
 camper_genes_df.loc[camper_genes_df['highest_host_tax_rank'] == 'g__JAEXAI01'].camper_definition.unique()
 
 
-# In[87]:
+# In[94]:
 
 
 camper_genes_df.loc[camper_genes_df['highest_host_tax_rank'] == 'g__JAATFL01'].camper_definition.unique()
 
 
-# In[88]:
+# In[95]:
 
 
 camper_genes_df.columns
@@ -1952,7 +2181,7 @@ camper_genes_df.columns
 
 # # Plot abundance of all CAMPER pathways to see if Lignan degradation also increased
 
-# In[95]:
+# In[96]:
 
 
 import matplotlib.pyplot as plt
@@ -2060,9 +2289,106 @@ plot_taxon_pathways_title_stats(camper_genes_df, 'g__JAEXAI01', replicate_frame)
 plot_taxon_pathways_title_stats(camper_genes_df, 'g__JAATFL01', replicate_frame)
 
 
+# In[97]:
+
+
+import math
+import numpy as np
+import pandas as pd
+from scipy import stats
+
+def generate_s12_supplemental_table(df, taxa_list, replicate_frame, output_dir):
+    """
+    Processes multiple taxa data, extracts long-form expressions, 
+    calculates window-restricted statistical tests, and saves a 
+    clean, tidy supplemental CSV.
+    """
+    all_compiled_records = []
+    
+    for taxon_name in taxa_list:
+        # 1. Filter for specific taxon
+        taxon_df = df[df['highest_host_tax_rank'] == taxon_name].copy()
+        if taxon_df.empty:
+            print(f"Skipping {taxon_name}: No data found.")
+            continue
+
+        # 2. Reshape from Wide to Long format
+        sample_cols = [col for col in taxon_df.columns if col.startswith('STM')]
+        df_long = taxon_df.melt(
+            id_vars=['gene', 'camper_definition'], 
+            value_vars=sample_cols,
+            var_name='Sample', 
+            value_name='geTMM'
+        )
+
+        # 3. Merge with replicate metadata
+        df_plot = df_long.merge(replicate_frame[['Sample', 'treatment', 'day']], on='Sample', how='left')
+
+        # 4. Sum per individual sample profile
+        df_summed = df_plot.groupby(['Sample', 'treatment', 'day', 'camper_definition'])['geTMM'].sum().reset_index()
+        unique_defs = df_summed['camper_definition'].unique()
+
+        # 5. Process each pathway definition and capture metrics
+        for gene_def in unique_defs:
+            gene_data = df_summed[df_summed['camper_definition'] == gene_def]
+            
+            # Statistical Test window constraints: Days 14-35 only
+            stats_window = gene_data[gene_data['day'] >= 14]
+            cat_vals = stats_window[stats_window['treatment'] == 'catechin']['geTMM']
+            una_vals = stats_window[stats_window['treatment'] == 'unamended']['geTMM']
+            
+            p_val_numeric = np.nan
+            if len(cat_vals) > 1 and len(una_vals) > 1:
+                _, p_val = stats.ttest_ind(cat_vals, una_vals, equal_var=False)
+                p_val_numeric = round(p_val, 6)
+
+            # Build row dictionaries for each replicate point
+            for _, row in gene_data.iterrows():
+                gene_short_name = gene_def.split(';')[0]
+                all_compiled_records.append({
+                    'Taxon_Host_Rank': taxon_name,
+                    'Camper_Definition_Full': gene_def,
+                    'Gene_Short_Name': gene_short_name,
+                    'Sample_ID': row['Sample'],
+                    'Treatment': row['treatment'].capitalize(),
+                    'Timepoint_Days': int(row['day']),
+                    'Total_Expression_geTMM': round(row['geTMM'], 4),
+                    'Welch_ttest_p_value_Days14_35': p_val_numeric
+                })
+
+    # 6. Convert to DataFrame and organize layout
+    df_supplemental_s12 = pd.DataFrame(all_compiled_records)
+    
+    # Sort logically so reviewers can query by organism, then functional pathway matrix
+    sorting_order = ['Taxon_Host_Rank', 'Gene_Short_Name', 'Treatment', 'Timepoint_Days', 'Sample_ID']
+    df_supplemental_s12 = df_supplemental_s12.sort_values(by=sorting_order).reset_index(drop=True)
+    
+    # 7. Export file
+    import os
+    os.makedirs(output_dir, exist_ok=True)
+    csv_path = os.path.join(output_dir, 'S12_pathway_expression_stats.csv')
+    df_supplemental_s12.to_csv(csv_path, index=False)
+    
+    print(f"Supplemental data table successfully saved to: {csv_path}")
+    return df_supplemental_s12
+
+# --- Execute compilation and save to target directory ---
+target_taxa = ['g__JAEXAI01', 'g__JAATFL01']
+destination_directory = '/users/PAS1573/riddell26/data'
+
+df_s12_final = generate_s12_supplemental_table(
+    df=camper_genes_df, 
+    taxa_list=target_taxa, 
+    replicate_frame=replicate_frame, 
+    output_dir=destination_directory
+)
+
+df_s12_final
+
+
 # # Check abundance of all these genes
 
-# In[94]:
+# In[98]:
 
 
 import matplotlib.pyplot as plt
@@ -2136,25 +2462,25 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S10B-Hydrogen
 plt.show()
 
 
-# In[95]:
+# In[99]:
 
 
 sorted_mags
 
 
-# In[96]:
+# In[100]:
 
 
 all_enriched_set = enriched_3plus_timepoints.union(enriched_2_timepoints).union(enriched_1_timepoint)
 
 
-# In[97]:
+# In[101]:
 
 
 all_enriched_set - set(sorted_mags)
 
 
-# In[98]:
+# In[102]:
 
 
 import numpy as np
@@ -2418,7 +2744,7 @@ print(f"Enriched 1 timepoint: {sum(fc_df_enriched['Enrichment_Type'] == '1 timep
 print(f"\nLog2 FC range: {np.nanmin(fc_df_enriched[[col for col in fc_df_enriched.columns if col not in ['Taxonomy', 'Enrichment_Type']]].values):.2f} to {np.nanmax(fc_df_enriched[[col for col in fc_df_enriched.columns if col not in ['Taxonomy', 'Enrichment_Type']]].values):.2f}")
 
 
-# In[99]:
+# In[106]:
 
 
 import numpy as np
@@ -2687,6 +3013,12 @@ print(f"Enriched 1 timepoint: {sum(fc_df_enriched['Enrichment_Type'] == '1 timep
 print(f"\nLog2 FC range: {np.nanmin(fc_df_enriched[[col for col in fc_df_enriched.columns if col not in ['Taxonomy', 'Enrichment_Type']]].values):.2f} to {np.nanmax(fc_df_enriched[[col for col in fc_df_enriched.columns if col not in ['Taxonomy', 'Enrichment_Type']]].values):.2f}")
 
 
+# In[107]:
+
+
+fc_df_enriched.to_csv('/users/PAS1573/riddell26/data/S13_extended_metabolism_heatmap.csv')
+
+
 # In[100]:
 
 
@@ -2816,10 +3148,10 @@ print(f"\nUnique taxonomic ranks with at least one enriched enzyme: {len(unique_
 print(f"Taxa: {sorted(unique_taxa_with_enrichment)}")
 
 
-# In[101]:
+# In[1]:
 
 
-get_ipython().system('jupyter nbconvert --to script 05-AB-polyphenol-expression.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S10-PGR-pgthAB-expression')
+get_ipython().system('jupyter nbconvert --to script 05-AB_S11-13_polyphenol-expression.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/05-AB_S11-13_polyphenol-expression')
 
 
 # In[ ]:
