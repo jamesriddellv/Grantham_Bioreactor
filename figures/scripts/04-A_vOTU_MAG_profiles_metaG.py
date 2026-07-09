@@ -164,6 +164,14 @@ color_dict = {
 }
 
 
+# In[17]:
+
+
+indicators = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/indicator_vOTUs_per_cluster_multi.csv')
+indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_groups']]
+indicators
+
+
 # In[11]:
 
 
@@ -175,22 +183,22 @@ def plot_metaG_profiles(host):
 
     # make color dict from indicator vOTUs
     indicators = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/indicator_vOTUs_per_cluster_multi.csv')
-    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_clusters']]
+    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_groups']]
     
     vOTU_df_melted = vOTU_df_melted.merge(indicators, on='vOTU', how='left').fillna('')
-    vOTU_df_melted['color'] = vOTU_df_melted['significant_clusters'].apply(lambda x: color_dict[x])
+    vOTU_df_melted['color'] = vOTU_df_melted['significant_groups'].apply(lambda x: color_dict[x])
     vOTU_df_melted.rename(columns={'vOTU': 'MAG'}, inplace=True)
 
     # order shared columns the same
     host_df_melted = host_df_melted[['MAG', 'Sample', 'treatment', 'day', 'meancov']]
-    vOTU_df_melted = vOTU_df_melted[['MAG', 'Sample', 'treatment', 'day', 'meancov', 'significant_clusters', 'color']]
+    vOTU_df_melted = vOTU_df_melted[['MAG', 'Sample', 'treatment', 'day', 'meancov', 'significant_groups', 'color']]
 
     # merge dataframes
     merged_df = pd.concat([host_df_melted, vOTU_df_melted], axis=0)
 
     # fill NAs
     merged_df['color'] = merged_df['color'].fillna('black')
-    merged_df['significant_clusters'] = merged_df['color'].fillna('black')
+    merged_df['significant_groups'] = merged_df['color'].fillna('black')
 
     # Duplicate day 0 and label catechin
     merged_modified = merged_df.copy()
@@ -208,7 +216,7 @@ def plot_metaG_profiles(host):
     merged_df = pd.concat([merged_modified, unamended_day0], ignore_index=True)
 
     # take mean of each set of sample replicates, should be the same since there are no replicates
-    merged_df_mean = merged_df.groupby(['MAG', 'treatment', 'day', 'significant_clusters', 'color']).agg({'meancov': 'mean'}).reset_index()
+    merged_df_mean = merged_df.groupby(['MAG', 'treatment', 'day', 'significant_groups', 'color']).agg({'meancov': 'mean'}).reset_index()
 
     # add provirus and MAG designations for labeling
     merged_df_mean['is_provirus'] = merged_df_mean['MAG'].str.contains('provirus')
@@ -254,8 +262,8 @@ def plot_metaG_profiles(host):
                 mag_data['day'],
                 mag_data['log10p_meancov'],
                 label=mag_name,
-                # color=mag_color_dict[mag_name],
-                color='black',
+                color=mag_color_dict[mag_name],
+                # color='black',
                 linestyle=linestyle,
                 linewidth=linewidth,
                 marker='o',
@@ -274,7 +282,7 @@ def plot_metaG_profiles(host):
     plt.suptitle(host, fontsize=16, horizontalalignment='right')
     plt.legend().remove()
     plt.tight_layout()
-    plt.savefig(f'/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_{host}_vOTU_metaG.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/SX_{host}_vOTU_metaG.pdf', dpi=300, bbox_inches='tight')
     plt.show()
 
     return merged_df
@@ -310,31 +318,31 @@ plot_metaG_profiles('g__Methanobacterium_B')
 plot_metaG_profiles('g__Paludibacter')
 
 
-# In[17]:
+# In[ ]:
 
 
 merged_df = plot_metaG_profiles('g__JAGFXR01')
 
 
-# In[18]:
+# In[ ]:
 
 
 merged_df['MAG'].unique()
 
 
-# In[19]:
+# In[ ]:
 
 
 plot_metaG_profiles('g__Clostridium')
 
 
-# In[20]:
+# In[ ]:
 
 
 plot_metaG_profiles('g__Pseudomonas_E')
 
 
-# In[21]:
+# In[ ]:
 
 
 def plot_metaG_profiles_no_color(host):
@@ -345,22 +353,22 @@ def plot_metaG_profiles_no_color(host):
 
     # make color dict from indicator vOTUs
     indicators = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/indicator_vOTUs_per_cluster_multi.csv')
-    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_clusters']]
+    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_groups']]
     
     vOTU_df_melted = vOTU_df_melted.merge(indicators, on='vOTU', how='left').fillna('')
-    vOTU_df_melted['color'] = vOTU_df_melted['significant_clusters'].apply(lambda x: color_dict[x])
+    vOTU_df_melted['color'] = vOTU_df_melted['significant_groups'].apply(lambda x: color_dict[x])
     vOTU_df_melted.rename(columns={'vOTU': 'MAG'}, inplace=True)
 
     # order shared columns the same
     host_df_melted = host_df_melted[['MAG', 'Sample', 'treatment', 'day', 'meancov']]
-    vOTU_df_melted = vOTU_df_melted[['MAG', 'Sample', 'treatment', 'day', 'meancov', 'significant_clusters', 'color']]
+    vOTU_df_melted = vOTU_df_melted[['MAG', 'Sample', 'treatment', 'day', 'meancov', 'significant_groups', 'color']]
 
     # merge dataframes
     merged_df = pd.concat([host_df_melted, vOTU_df_melted], axis=0)
 
     # fill NAs
     merged_df['color'] = merged_df['color'].fillna('#808080')
-    merged_df['significant_clusters'] = merged_df['color'].fillna('')
+    merged_df['significant_groups'] = merged_df['color'].fillna('')
 
     # Duplicate day 0 and label catechin
     merged_modified = merged_df.copy()
@@ -378,7 +386,7 @@ def plot_metaG_profiles_no_color(host):
     merged_df = pd.concat([merged_modified, unamended_day0], ignore_index=True)
 
     # take mean of each set of sample replicates, should be the same since there are no replicates
-    merged_df_mean = merged_df.groupby(['MAG', 'treatment', 'day', 'significant_clusters', 'color']).agg({'meancov': 'mean'}).reset_index()
+    merged_df_mean = merged_df.groupby(['MAG', 'treatment', 'day', 'significant_groups', 'color']).agg({'meancov': 'mean'}).reset_index()
 
     # add provirus and MAG designations for labeling
     merged_df_mean['is_provirus'] = merged_df_mean['MAG'].str.contains('provirus')
@@ -448,16 +456,16 @@ def plot_metaG_profiles_no_color(host):
     return merged_df
 
 
-# In[22]:
+# In[ ]:
 
 
-plot_metaG_profiles_no_color('g__JAGFXR01')
+jagfxr01_metaG = plot_metaG_profiles_no_color('g__JAGFXR01')
 
 
-# In[23]:
+# In[ ]:
 
 
-get_ipython().system('jupyter nbconvert --to script 007-vOTU_vs_host_metaG.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/03-A_vOTU_MAG_profiles_metaG')
+get_ipython().system('jupyter nbconvert --to script 007-vOTU_vs_host_metaG.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/04-A_vOTU_MAG_profiles_metaG')
 
 
 # In[ ]:
