@@ -19,13 +19,17 @@ figDir <- "/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/"
 
 #read in and format abundance data
 # >5 reads map to lytic gene from 001-identify-active-virus-structural-genes 
-df <- read.csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/getmms_REV_5x_vOTUs_corrected_wide.tsv', sep='\t')
+df <- read.csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/active_vOTUs_5_reads_mapped_relative_abundance.tsv', sep='\t')
 
 # >1 gene / 10kb with a read mapped
 # df <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/active_vOTUs_1_gene_per_10kb_relative_abundance.tsv", sep='\t')
 
 # >1 read mapped
 # df <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/active_vOTUs_1_read_mapped_relative_abundance.tsv", sep='\t')
+
+# >10% horizontal coverage
+# df <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/active_vOTUs_prop10_relative_abundance.tsv", sep='\t')
+
 
 
 metadata <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/data/metaT_sample_metadata.csv")
