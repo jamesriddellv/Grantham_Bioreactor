@@ -225,6 +225,17 @@ def plot_metaG_profiles(host):
     # log transform meancov since values are a broad range
     merged_df_mean['log10p_meancov'] = merged_df_mean['meancov'].apply(lambda x: np.log10(x+1))
 
+    host_to_fig_dict = {
+        'g__Clostridium': 'S8A',
+        'g__JAGFXR01': 'S8B',
+        'g__Paludibacter': 'S8C',
+        'g__Pseudomonas_E': 'S8D' 
+    }
+
+    if host in host_to_fig_dict.keys:
+        fig_label = host_to_fig_dict[host]
+        merged_df_mean.to_csv(f'data/{fig_label}_mean_metaG.tsv')
+    
     # create color dictionary to map colors to correct values
     mag_color_dict = dict(
         zip(
@@ -462,13 +473,13 @@ def plot_metaG_profiles_no_color(host):
 jagfxr01_metaG = plot_metaG_profiles_no_color('g__JAGFXR01')
 
 
-# In[24]:
+# In[25]:
 
 
-jagfxr01_metaG.to_csv('data/4A_JAGFXR01_metaG
+jagfxr01_metaG.to_csv('data/4A_JAGFXR01_vOTU_MAG_metaG.csv', index=False)
 
 
-# In[23]:
+# In[26]:
 
 
 get_ipython().system('jupyter nbconvert --to script 007-vOTU_vs_host_metaG.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/04-A_vOTU_MAG_profiles_metaG')
