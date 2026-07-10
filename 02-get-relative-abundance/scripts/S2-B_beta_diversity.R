@@ -3,8 +3,6 @@ library(corrplot)
 library(readxl)
 library(dplyr)
 library(ggplot2)
-library(factoextra)
-library(cluster)
 
 # Set location
 setwd("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/scripts")
@@ -30,7 +28,7 @@ input_configs <- list(
   )
 )
 
-# Load and clean metadata
+# Load metadata
 metadata <- read.csv("/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/data/metaT_sample_metadata.csv")
 metadata <- metadata %>%
   mutate(treatment = case_when(
@@ -51,17 +49,17 @@ perform_pca_analysis <- function(input_file, output_suffix, metadata, figDir) {
   # Read data
   df <- read.csv(input_file, sep='\t')
   
-  # Prepare column names
+  # Prepare data
   treatment_timepoint <- paste(metadata$treatment, metadata$timepoint, sep='_')
   rownames(df) <- df$vOTU
   df$vOTU <- NULL
   colnames(df) <- make.unique(treatment_timepoint)
   
-  # Transform data (Hellinger)
+  # Transform data
   t_df <- t(df) %>% as_tibble(rownames = NA)
   log_df <- decostand(t_df, method = "hellinger")
   
-  # Wrangle metadata for plotting from the transformed dataframe rownames
+  # Wrangle metadata from rownames
   days <- sapply(strsplit(rownames(log_df), "day"), function(x) x[2])
   days <- sapply(strsplit(days, '\\.'), function(x) x[1])
   treats <- sapply(strsplit(rownames(log_df), "_"), function(x) x[1])
@@ -81,39 +79,35 @@ perform_pca_analysis <- function(input_file, output_suffix, metadata, figDir) {
   x_label <- paste0("PC1 (", round(explained_var[1], 1), "%)")
   y_label <- paste0("PC2 (", round(explained_var[2], 1), "%)")
   
-  # Combine scores with metadata
   PCA_points <- cbind(PCA_scores, meta_combined)
   
-  # Define colors
+  # Aesthetic Mappings
   cols_df <- c("C" = "#FC9B2D", "U" = "#7ACBC3")
+  pch_df  <- c('0'=19, '7'=7, '14'=17, '21'=15, '35'=3)
   
   # Generate plot
   output_file <- paste0(figDir, "S2-B_PCA_", output_suffix, ".pdf")
   cat("Saving plot to:", output_file, "\n")
   
-  pdf(file = output_file, width = 10, height = 10)
-  p <- ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment, shape = factor(day))) +
-    geom_point(size = 12, stroke = 1.5, alpha = 0.8) +
+  pdf(file = output_file, width = 11, height = 10)
+  p <- ggplot(PCA_points, aes(x = PC1, y = PC2, color = treatment, shape = day)) +
+    geom_point(size = 12, stroke = 2.5, alpha = 0.85) +
     scale_color_manual(values = cols_df) +
+    scale_shape_manual(values = pch_df) +
     theme_minimal() +
-    theme(axis.text = element_text(size = 20),
-          axis.title = element_text(size = 22),
-          legend.text = element_text(size = 15),
-          panel.grid.major = element_line(color = "grey90"),
+    theme(axis.text = element_text(size = 22, color = "black"),
+          axis.title = element_text(size = 24, face = "bold"),
+          legend.title = element_text(size = 18, face = "bold"),
+          legend.text = element_text(size = 16),
+          panel.grid.major = element_line(color = "grey92"),
           panel.grid.minor = element_blank(),
-          axis.line = element_line(color = "black", linewidth = 0.5)) +
-    labs(x = x_label,
-         y = y_label,
-         title = paste("PCA:", output_suffix))
+          axis.line = element_line(color = "black", linewidth = 0.8)) +
+    labs(x = x_label, y = y_label, color = "Treatment", shape = "Day")
+  
   print(p)
   dev.off()
   
-  cat("Completed:", output_suffix, "\n")
-  
-  return(list(
-    PCA_scores = PCA_points,
-    explained_var = explained_var
-  ))
+  return(list(PCA_scores = PCA_points, explained_var = explained_var))
 }
 
 ###################

@@ -689,7 +689,7 @@ print(f"Average: {mean_val}")
 print(f"Standard Deviation: {std_val}")
 
 
-# In[47]:
+# In[1]:
 
 
 get_ipython().system('jupyter nbconvert --to script 001-identify-active-vOTU-and-calc-getmm-abundance.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/scripts/06-identify-active-vOTU-and-calc-getmm-abundance')

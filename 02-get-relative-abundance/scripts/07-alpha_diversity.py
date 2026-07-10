@@ -46,76 +46,18 @@ df.head()
 # In[5]:
 
 
-# add replicates
-replicate_frame = pd.DataFrame({
-    'STM_0716_E_M_E002_unamended_0': 1,
-    'STM_0716_E_M_E003_unamended_0': 2,
-       'STM_0716_E_M_E004_unamended_0': 3,
-    'STM_0716_E_M_E025_unamended_14': 1,
-       'STM_0716_E_M_E027_unamended_14': 2,
-    'STM_0716_E_M_E029_CT_14': 1,
-       'STM_0716_E_M_E030_CT_14': 2,
-    'STM_0716_E_M_E031_CT_14': 3,
-       'STM_0716_E_M_E033_catechin_14': 1,
-    'STM_0716_E_M_E034_catechin_14': 2,
-       'STM_0716_E_M_E035_catechin_14': 3,
-    'STM_0716_E_M_E050_unamended_21': 1,
-       'STM_0716_E_M_E051_unamended_21': 2,
-    'STM_0716_E_M_E052_unamended_21': 3,
-       'STM_0716_E_M_E054_CT_21': 1,
-    'STM_0716_E_M_E055_CT_21': 2,
-       'STM_0716_E_M_E056_CT_21': 3,
-    'STM_0716_E_M_E058_catechin_21': 1,
-       'STM_0716_E_M_E059_catechin_21': 2,
-    'STM_0716_E_M_E060_catechin_21': 3,
-       'STM_0716_E_M_E062_unamended_35': 1,
-    'STM_0716_E_M_E063_unamended_35': 2,
-       'STM_0716_E_M_E064_unamended_35': 3,
-    'STM_0716_E_M_E066_CT_35': 1,
-       'STM_0716_E_M_E067_CT_35': 2,
-    'STM_0716_E_M_E068_CT_35': 3,
-       'STM_0716_E_M_E070_catechin_35': 1,
-    'STM_0716_E_M_E071_catechin_35': 2,
-       'STM_0716_E_M_E072_catechin_35': 3,
-    'STM_0716_E_M_E121_unamended_07': 1,
-       'STM_0716_E_M_E122_unamended_07': 2,
-    'STM_0716_E_M_E123_unamended_07': 3,
-       'STM_0716_E_M_E125_CT_07': 1,
-    'STM_0716_E_M_E126_CT_07': 2,
-       'STM_0716_E_M_E127_CT_07': 3,
-    'STM_0716_E_M_E129_catechin_07': 1,
-       'STM_0716_E_M_E130_catechin_07': 2,
-    'STM_0716_E_M_E131_catechin_07': 3
-}.items())
-
-replicate_frame['Sample'] = replicate_frame[0].apply(lambda x: x.rsplit('_', 2)[0])
-replicate_frame['treatment'] = replicate_frame[0].apply(lambda x: x.rsplit('_', 2)[1])
-replicate_frame['day'] = replicate_frame[0].apply(lambda x: x.rsplit('_', 2)[2])
-replicate_frame.columns = ['sample_treatment_day', 'replicate', 'Sample', 'treatment', 'day']
-replicate_frame['treatment_day_replicate'] = replicate_frame['treatment'] + '_' + replicate_frame['day'].astype(str) + '_' + replicate_frame['replicate'].astype(str)
-
-
-# In[6]:
-
-
-replicate_frame = replicate_frame.loc[replicate_frame['treatment'] != 'CT']
-
-
-# In[7]:
-
-
-replicate_frame.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/sample_metadata.csv', index=False)
+replicate_frame = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/data/sample_metadata.csv')
 
 
 # # Compare Hill Number package to observed_otus, shannon, and inv_simpson
 
-# In[8]:
+# In[6]:
 
 
 df = df.set_index('vOTU')
 
 
-# In[9]:
+# In[7]:
 
 
 import pandas as pd
@@ -131,7 +73,7 @@ df_ceil = np.ceil(df)
 df_notrans = df
 
 
-# In[10]:
+# In[8]:
 
 
 # Read metadata
@@ -162,7 +104,7 @@ df_ceil.columns = make_unique(df_ceil.columns)
 df_notrans.columns = make_unique(df_notrans.columns)
 
 
-# In[11]:
+# In[9]:
 
 
 # Transpose and convert to numeric matrix
@@ -171,7 +113,7 @@ ceil_mtx = ceil_mtx.apply(pd.to_numeric, errors='coerce')
 ceil_mtx
 
 
-# In[12]:
+# In[10]:
 
 
 # Transpose and convert to numeric matrix
@@ -180,19 +122,19 @@ df_mtx = df_mtx.apply(pd.to_numeric, errors='coerce')
 df_mtx
 
 
-# In[13]:
+# In[11]:
 
 
 metadata['timepoint'] = metadata['timepoint'].apply(lambda x: int(x.split('day')[1]))
 
 
-# In[14]:
+# In[12]:
 
 
 metadata
 
 
-# In[15]:
+# In[13]:
 
 
 from skbio.diversity.alpha import observed_otus, shannon, inv_simpson, hill
@@ -237,7 +179,7 @@ print(f"Exp(Shannon) == Hill q1: {np.allclose(results['Exp(Shannon)'], results['
 print(f"Inv Simpson == Hill q2: {np.allclose(results['Inv Simpson'], results['Hill q=2'])}")
 
 
-# In[16]:
+# In[14]:
 
 
 results
@@ -245,7 +187,7 @@ results
 
 # # Compare hill numbers to rounded-up and non-rounded data to demonstrate artificial inflation from rounding to justify changing the method to reviewers.
 
-# In[17]:
+# In[15]:
 
 
 # Compute Hill numbers on non-transformed data
@@ -254,7 +196,7 @@ metadata['hill_q1'] = df_mtx.astype(int).apply(lambda x: hill(x, order=1), axis=
 metadata['hill_q2'] = df_mtx.astype(int).apply(lambda x: hill(x, order=2), axis=1).values
 
 
-# In[18]:
+# In[16]:
 
 
 diff_q0 = metadata['ceil_hill_q0'] - metadata['hill_q0']
@@ -266,7 +208,7 @@ print(f"Shannon Index of ceiling minus no transformation:  {diff_q1.abs().max():
 print(f"Inverse Simpson of ceiling minus no transformation:   {diff_q2.abs().max():.2e}")
 
 
-# In[19]:
+# In[17]:
 
 
 import matplotlib.pyplot as plt
@@ -340,7 +282,7 @@ for q, name in orders.items():
 
 # # Compare side-by-side
 
-# In[20]:
+# In[ ]:
 
 
 from skbio.diversity.alpha import observed_otus, shannon, inv_simpson, hill
@@ -431,7 +373,7 @@ for q, name in orders.items():
 
 # # In addition to alpha diversity, we want to plot and compare the proportion of reads mapping to active vOTUs across treatments and over time.
 
-# In[21]:
+# In[ ]:
 
 
 gff_df = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/01-build-vOTU-database/results/vOTUs/combined_manual_filtered_gene_lengths.txt', sep='\t')
@@ -490,45 +432,45 @@ counts.columns = [
 counts.head()
 
 
-# In[22]:
+# In[ ]:
 
 
 counts = counts.merge(gff_df, on='gene', how='left').dropna()
 counts
 
 
-# In[23]:
+# In[ ]:
 
 
 counts_long = counts.melt(id_vars=['gene', 'vOTU'], var_name='Sample', value_name='num_reads_mapped')
 counts_long
 
 
-# In[24]:
+# In[ ]:
 
 
 counts_long = counts_long.groupby(['vOTU', 'Sample']).agg({'num_reads_mapped': 'sum'}).reset_index()
 
 
-# In[25]:
+# In[ ]:
 
 
 counts_long = counts_long.merge(replicate_frame, on='Sample', how='left')
 
 
-# In[26]:
+# In[ ]:
 
 
 counts_long = counts_long.loc[counts_long['treatment'] != 'CT']
 
 
-# In[27]:
+# In[ ]:
 
 
 counts_long
 
 
-# In[28]:
+# In[ ]:
 
 
 # keep only active vOTUs
@@ -536,52 +478,52 @@ counts_long = counts_long.loc[counts_long['vOTU'].isin(list(df.index))]
 counts_long
 
 
-# In[29]:
+# In[ ]:
 
 
 reads_mapped_per_sample = counts_long.groupby(['Sample', 'treatment', 'day', 'replicate']).agg({'num_reads_mapped': 'sum'}).reset_index()
 reads_mapped_per_sample
 
 
-# In[30]:
+# In[ ]:
 
 
 metadata.columns
 
 
-# In[31]:
+# In[ ]:
 
 
 reads_mapped_per_sample = reads_mapped_per_sample.merge(metadata[['Sample', 'total reads (R1+R2)']], on='Sample', how='left')
 
 
-# In[32]:
+# In[ ]:
 
 
 reads_mapped_per_sample['prop_mapped'] = reads_mapped_per_sample['num_reads_mapped'] / reads_mapped_per_sample['total reads (R1+R2)'] * 100
 reads_mapped_per_sample
 
 
-# In[33]:
+# In[ ]:
 
 
 reads_mapped_per_sample['day'] = reads_mapped_per_sample['day'].astype(int)
 
 
-# In[34]:
+# In[ ]:
 
 
 reads_mapped_per_sample.loc[reads_mapped_per_sample['day'] == 14]
 
 
-# In[35]:
+# In[ ]:
 
 
 metadata = metadata.merge(reads_mapped_per_sample[['Sample', 'prop_mapped']], on='Sample', how='left')
 metadata
 
 
-# In[36]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -639,7 +581,7 @@ plt.show()
 
 # # Perform Welch's t-test
 
-# In[37]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -731,7 +673,7 @@ plot_df = metadata[~((metadata['treatment'] == 'U') & (metadata['timepoint'] == 
 plot_df['timepoint_str'] = plot_df['timepoint'].astype(str)
 
 
-# In[38]:
+# In[ ]:
 
 
 # ── Build 2×2 figure ─────────────────────────────────────────────────────────
@@ -804,7 +746,7 @@ fig.tight_layout()
 plt.show()
 
 
-# In[39]:
+# In[ ]:
 
 
 df_mtx
@@ -812,7 +754,7 @@ df_mtx
 
 # ### power analysis
 
-# In[40]:
+# In[ ]:
 
 
 # Define functions
@@ -857,7 +799,7 @@ def n_for_power(target_power, effect_size, alpha=0.05, alternative='larger'):
     return int(np.ceil(n))
 
 
-# In[41]:
+# In[ ]:
 
 
 # ── Part 1: Per-Timepoint Welch Tests ─────────────────────────────────────────
@@ -922,13 +864,13 @@ cols_to_show = ['Timepoint', 'n_C', 'n_U', 'cohens_d', 'power_actual', 'n_needed
 print(results_combined[cols_to_show])
 
 
-# In[42]:
+# In[ ]:
 
 
 results_combined.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/power_analysis_prop_mapped_table.csv', index=False)
 
 
-# In[43]:
+# In[ ]:
 
 
 # ── Part 1: Per-Timepoint Welch Tests ─────────────────────────────────────────
@@ -993,7 +935,7 @@ cols_to_show = ['Timepoint', 'n_C', 'n_U', 'cohens_d', 'power_actual', 'n_needed
 print(results_combined[cols_to_show])
 
 
-# In[44]:
+# In[ ]:
 
 
 results_combined.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/power_analysis_hill_q1_table.csv', index=False)
@@ -1001,7 +943,7 @@ results_combined.to_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/p
 
 # # Test time dependency
 
-# In[45]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -1046,7 +988,7 @@ plt.tight_layout()
 plt.savefig('alpha_diversity_over_time.png', dpi=300)
 
 
-# In[49]:
+# In[ ]:
 
 
 import matplotlib.pyplot as plt
@@ -1197,9 +1139,15 @@ plt.savefig(
 plt.show()
 
 
+# In[ ]:
+
+
+plot_df.to_csv('data/2A_diversity_indices.csv', index=False)
+
+
 # # Post-hoc power analysis
 
-# In[50]:
+# In[ ]:
 
 
 import pandas as pd
@@ -1280,7 +1228,7 @@ p_alpha = analyze_with_power('hill_q1_z', h1_greater='U', label='Alpha Diversity
 p_prop  = analyze_with_power('prop_mapped_z', h1_greater='C', label='Prop Mapped')
 
 
-# In[54]:
+# In[ ]:
 
 
 import pandas as pd
@@ -1352,7 +1300,7 @@ print("\n--- POST-HOC POWER: PROP MAPPED (H1: C > U---")
 print(df_prop.to_string(index=False))
 
 
-# In[55]:
+# In[ ]:
 
 
 df_alpha
@@ -1361,7 +1309,7 @@ df_alpha
 # In[ ]:
 
 
-get_ipython().system('jupyter nbconvert --to script 003-alpha-diversity-sensitivity-anlaysis.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/scripts/07-alpha_diversity')
+get_ipython().system('jupyter nbconvert --to script 003-alpha-diversity-sensitivity-analysis.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/scripts/07-alpha_diversity')
 
 
 # In[ ]:
