@@ -118,6 +118,8 @@ plot_info <- sample_info %>%
 bray_mat <- as.matrix(bray_dist)
 bray_mat <- bray_mat[plot_info$row_names, plot_info$row_names]
 
+write.csv(bray_mat, "/users/PAS1573/riddell26/data/S3_bray_matrix.csv", row.names = TRUE)
+
 # 3. Create Annotation Dataframe for the Heatmap
 # This tells pheatmap which samples belong to which treatment/day
 ann_df <- plot_info %>%
