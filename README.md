@@ -2,21 +2,5 @@
 
 This repository contains all the code used in "Virus community response and potential role in metabolic rewiring of methane-suppressed soils"
 
-## Scripts to generate main figures:
-
-**1B:** `figures/scripts/01-B_MAG_relative_abundance_over_time_getmm.py`
-
-**2A:** `02-get-relative-abundance/scripts/07-alpha-diversity.py`
-
-**2B:** `02-get-relative-abundance/scripts/07-beta-diversity-and-ISA.R`
-
-**2C:** `figures/scripts/02-C_vOTU_relative_abundance_over_time_getmm.py`
-
-**2D:** `figures/scripts/02-D.graphml` (open in cytoscape)
-
-**3B** `figures/scripts/03-B_S8_vOTU_MAG_correlation_metaT.py`
-
-**4A:** `figures/scripts/03-A_vOTU_MAG_profiles_metaT.py`; `figures/scripts/03-A_vOTU_MAG_profiles_metaG.py`
-
-**4B:** `02-get-relative-abundance/scripts/10-contig_591846-ggridges.R`
+Refer to README.txt for a tab-delimited file of all figures, corresponding input data, code, output files, and notes that can be found at the permanent repository <>.
 
