@@ -4,7 +4,7 @@ library(dplyr)
 library(ggplot2)
 library(factoextra)
 library(cluster)
-library(fpc)       # for Calinski-Harabasz
+# library(fpc)       # for Calinski-Harabasz
 
 # ── 0. Load data ──────────────────────────────────────────────────────────────
 
