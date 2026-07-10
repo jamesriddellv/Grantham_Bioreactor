@@ -114,7 +114,6 @@ symnum_args <- list(
 
 # 3. Clean the dataframe names to ensure no duplicates exist
 combined_df_clean <- combined_df[, !duplicated(colnames(combined_df))]
-
 # 4. Generate the Plot
 ggplot(combined_df_clean, aes(x = Day, y = Distance, fill = Source)) +
   geom_boxplot(alpha = 0.7, outlier.shape = NA) +
@@ -242,3 +241,4 @@ ggplot(combined_df_clean, aes(x = Day, y = Distance, fill = Source)) +
   )
 
 dev.off()
+write.csv(combined_df_clean, '/users/PAS1573/riddell26/data/S4C_community_divergence_vOTU_MAG.csv')
