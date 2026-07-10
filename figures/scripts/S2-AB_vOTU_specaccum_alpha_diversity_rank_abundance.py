@@ -1283,7 +1283,7 @@ quantile_table = pd.Series(deciles, index=[f"{int(q*100)}%" for q in quantiles])
 print(quantile_table)
 
 
-# In[45]:
+# In[1]:
 
 
 get_ipython().system('jupyter nbconvert --to script 002S2-active-virus-alternatives.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/S2-AB_vOTU_specaccum_alpha_diversity_rank_abundance')
