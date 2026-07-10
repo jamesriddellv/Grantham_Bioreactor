@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# In[1]:
 
 
 import pandas as pd
@@ -21,7 +21,7 @@ print_versions(globals())
 
 # # The goal is to look at the relative abundance of JAGFXR01 and viral populations within the same samples, and make an estimate on how many viruses to hosts we had
 
-# In[ ]:
+# In[2]:
 
 
 # host = 'g__Pseudomonas_E'
@@ -31,21 +31,21 @@ host = 'g__Paludibacter'
 
 # # Load metaT datasets
 
-# In[ ]:
+# In[3]:
 
 
 MAG_metaT = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/MAGs/metaT/MAG_GTDB_getmm.tsv', sep='\t')
 MAG_metaT.head()
 
 
-# In[ ]:
+# In[4]:
 
 
 vOTU_metaT = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/vOTU/read_mapping_metaT/vOTU_metadata_getmm.tsv', sep='\t')
 vOTU_metaT.head()
 
 
-# In[ ]:
+# In[5]:
 
 
 color_dict = {
@@ -75,7 +75,7 @@ color_dict = {
 }
 
 
-# In[ ]:
+# In[6]:
 
 
 def plot_metaT_profiles(host):
@@ -99,22 +99,22 @@ def plot_metaT_profiles(host):
 
     # make color dict from indicator vOTUs
     indicators = pd.read_csv('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/indicator_vOTUs_per_cluster_multi.csv')
-    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_clusters']]
+    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_groups']]
     
     vOTU_df_melted = vOTU_df_melted.merge(indicators, on='vOTU', how='left').fillna('')
-    vOTU_df_melted.columns = ['MAG', 'Sample', 'getmm', 'treatment', 'day', 'significant_clusters']
-    vOTU_df_melted['color'] = vOTU_df_melted['significant_clusters'].apply(lambda x: color_dict[x])
+    vOTU_df_melted.columns = ['MAG', 'Sample', 'getmm', 'treatment', 'day', 'significant_groups']
+    vOTU_df_melted['color'] = vOTU_df_melted['significant_groups'].apply(lambda x: color_dict[x])
 
     # order shared columns the same
     host_df_melted = host_df_melted[['MAG', 'Sample', 'treatment', 'day', 'getmm']]
-    vOTU_df_melted = vOTU_df_melted[['MAG', 'Sample', 'treatment', 'day', 'getmm', 'significant_clusters', 'color']]
+    vOTU_df_melted = vOTU_df_melted[['MAG', 'Sample', 'treatment', 'day', 'getmm', 'significant_groups', 'color']]
 
     # merge dataframes
     merged_df = pd.concat([host_df_melted, vOTU_df_melted], axis=0)
 
     # fill NAs
     merged_df['color'] = merged_df['color'].fillna('#808080')
-    merged_df['significant_clusters'] = merged_df['color'].fillna('')
+    merged_df['significant_groups'] = merged_df['color'].fillna('')
 
     # Duplicate day 0 and label catechin
     merged_modified = merged_df.copy()
@@ -132,7 +132,7 @@ def plot_metaT_profiles(host):
     merged_df = pd.concat([merged_modified, unamended_day0], ignore_index=True)
 
     # take mean of each set of sample replicates
-    merged_df_mean = merged_df.groupby(['MAG', 'treatment', 'day', 'significant_clusters', 'color']).agg({'getmm': 'mean'}).reset_index()
+    merged_df_mean = merged_df.groupby(['MAG', 'treatment', 'day', 'significant_groups', 'color']).agg({'getmm': 'mean'}).reset_index()
 
     # add provirus and MAG designations for labeling
     merged_df_mean['is_provirus'] = merged_df_mean['MAG'].str.contains('provirus')
@@ -173,7 +173,7 @@ def plot_metaT_profiles(host):
     
             linestyle = '--' if first_row['is_MAG'] else '-'
             linewidth = 3 if first_row['is_provirus'] or first_row['is_MAG'] else 1
-            alpha = 1 if first_row['significant_clusters'] != '' else 0.2
+            alpha = 1 if first_row['significant_groups'] != '' else 0.2
     
             # Choose which axis to plot on
             target_ax = ax_mag if first_row['is_MAG'] else ax
@@ -211,7 +211,7 @@ def plot_metaT_profiles(host):
     return merged_df
 
 
-# In[ ]:
+# In[7]:
 
 
 def plot_metaT_profiles_no_MAG(host):
@@ -238,16 +238,16 @@ def plot_metaT_profiles_no_MAG(host):
     indicators = pd.read_csv(
         '/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/02-get-relative-abundance/results/indicator_vOTUs_per_cluster_multi.csv'
     )
-    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_clusters']]
+    indicators = indicators.loc[indicators['p_value'] <= 0.01][['vOTU', 'significant_groups']]
     
     vOTU_df_melted = vOTU_df_melted.merge(indicators, on='vOTU', how='left').fillna('')
-    vOTU_df_melted.columns = ['MAG', 'Sample', 'getmm', 'treatment', 'day', 'significant_clusters']
-    vOTU_df_melted['color'] = vOTU_df_melted['significant_clusters'].apply(lambda x: color_dict[x])
+    vOTU_df_melted.columns = ['MAG', 'Sample', 'getmm', 'treatment', 'day', 'significant_groups']
+    vOTU_df_melted['color'] = vOTU_df_melted['significant_groups'].apply(lambda x: color_dict[x])
 
     # combine
     merged_df = pd.concat([host_df_melted, vOTU_df_melted], axis=0)
     merged_df['color'] = merged_df['color'].fillna('#808080')
-    merged_df['significant_clusters'] = merged_df['color'].fillna('')
+    merged_df['significant_groups'] = merged_df['color'].fillna('')
 
     # duplicate unamended day 0 as catechin day 0
     merged_modified = merged_df.copy()
@@ -260,7 +260,7 @@ def plot_metaT_profiles_no_MAG(host):
 
     # aggregate replicates
     merged_df_mean = merged_df.groupby(
-        ['MAG', 'treatment', 'day', 'significant_clusters', 'color']
+        ['MAG', 'treatment', 'day', 'significant_groups', 'color']
     ).agg({'getmm': 'mean'}).reset_index()
 
     # annotate and transform
@@ -293,7 +293,7 @@ def plot_metaT_profiles_no_MAG(host):
 
             first_row = mag_data.iloc[0]
             linewidth = 3 if first_row['is_provirus'] else 1
-            alpha = 1 if first_row['significant_clusters'] != '' else 0.2
+            alpha = 1 if first_row['significant_groups'] != '' else 0.2
 
             ax.plot(
                 mag_data['day'],
@@ -322,43 +322,43 @@ def plot_metaT_profiles_no_MAG(host):
     return merged_df_mean
 
 
-# In[ ]:
+# In[8]:
 
 
 jag = plot_metaT_profiles_no_MAG('g__JAGFXR01')
 
 
-# In[ ]:
+# In[9]:
 
 
 plot_metaT_profiles('g__Paludibacter')
 
 
-# In[ ]:
+# In[10]:
 
 
 jag = plot_metaT_profiles('g__JAGFXR01')
 
 
-# In[ ]:
+# In[11]:
 
 
 plot_metaT_profiles('g__Clostridium')
 
 
-# In[ ]:
+# In[12]:
 
 
 plot_metaT_profiles('g__Pseudomonas_E')
 
 
-# In[ ]:
+# In[13]:
 
 
 plot_metaT_profiles('g__Methanothrix')
 
 
-# In[ ]:
+# In[14]:
 
 
 def get_ratio_of_top_two(day):
@@ -369,13 +369,19 @@ def get_ratio_of_top_two(day):
     return ratio
 
 
-# In[ ]:
+# In[15]:
 
 
 get_ratio_of_top_two(14), get_ratio_of_top_two(21), get_ratio_of_top_two(35)
 
 
-# In[ ]:
+# In[19]:
+
+
+jag.to_csv('/users/PAS1573/riddell26/data/4A_JAGFXR01_vOTU_MAG_metaT.csv', index=False)
+
+
+# In[20]:
 
 
 get_ipython().system('jupyter nbconvert --to script 007-vOTU_vs_host_metaT.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/04-A_vOTU_MAG_profiles_metaT')
