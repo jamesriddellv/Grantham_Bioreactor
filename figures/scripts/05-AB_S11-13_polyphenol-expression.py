@@ -2462,6 +2462,12 @@ plt.savefig('/fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/S10B-Hydrogen
 plt.show()
 
 
+# In[101]:
+
+
+dir_only_df.to_csv('data/S12A_hydrogenase_gene_activity_additional_degraders
+
+
 # In[99]:
 
 
@@ -3019,7 +3025,7 @@ print(f"\nLog2 FC range: {np.nanmin(fc_df_enriched[[col for col in fc_df_enriche
 fc_df_enriched.to_csv('/users/PAS1573/riddell26/data/S13_extended_metabolism_heatmap.csv')
 
 
-# In[100]:
+# In[108]:
 
 
 def analyze_additional_enzyme_enrichment(df, additional_enzymes):
@@ -3148,7 +3154,7 @@ print(f"\nUnique taxonomic ranks with at least one enriched enzyme: {len(unique_
 print(f"Taxa: {sorted(unique_taxa_with_enrichment)}")
 
 
-# In[1]:
+# In[109]:
 
 
 get_ipython().system('jupyter nbconvert --to script 05-AB_S11-13_polyphenol-expression.ipynb --output /fs/ess/PAS1117/riddell26/Grantham_Bioreactor/figures/scripts/05-AB_S11-13_polyphenol-expression')
